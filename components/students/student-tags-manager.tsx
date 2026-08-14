@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
-import { FiPlus, FiTrash2 } from "react-icons/fi";
+import { FiTrash2 } from "react-icons/fi";
 import {
   createStudentTagAction,
   deleteStudentTagAction,
@@ -10,6 +10,7 @@ import type { ActionResult } from "@/actions/auth.actions";
 import { ConfirmModal } from "@/components/modals/confirm-modal";
 import { FormModal } from "@/components/modals/form-modal";
 import { IconButton } from "@/components/modals/icon-button";
+import { AddButton } from "@/components/ui/add-button";
 import { ColorPicker } from "@/components/ui/color-picker";
 import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
@@ -73,12 +74,7 @@ export function StudentTagsManager({ tags }: StudentTagsManagerProps) {
           <h2 className="text-sm font-semibold">{t("students.tags.title")}</h2>
           <p className="text-xs text-muted-foreground">{t("students.tags.description")}</p>
         </div>
-        <IconButton
-          labelKey="students.tags.add"
-          icon={<FiPlus className="h-4 w-4" />}
-          variant="default"
-          onClick={() => setCreateOpen(true)}
-        />
+        <AddButton labelKey="students.tags.add" onClick={() => setCreateOpen(true)} />
       </div>
       {tags.length === 0 ? (
         <p className="mt-3 text-sm text-muted-foreground">{t("students.tags.empty")}</p>

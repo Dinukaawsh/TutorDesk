@@ -1,13 +1,12 @@
 ﻿"use client";
 
 import { useState } from "react";
-import { FiPlus } from "react-icons/fi";
 import { deleteAnnouncementAction } from "@/actions/announcement.actions";
 import { AnnouncementForm } from "@/components/announcements/announcement-form";
 import { AnnouncementList } from "@/components/announcements/announcement-list";
 import { ConfirmModal } from "@/components/modals/confirm-modal";
 import { FormModal } from "@/components/modals/form-modal";
-import { IconButton } from "@/components/modals/icon-button";
+import { AddButton } from "@/components/ui/add-button";
 import { t } from "@/content/navigation";
 
 type SubjectOption = { id: string; name: string };
@@ -34,12 +33,7 @@ export function TeacherAnnouncementsClient({
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <IconButton
-          labelKey="action.add"
-          icon={<FiPlus className="h-4 w-4" />}
-          variant="default"
-          onClick={() => setCreateOpen(true)}
-        />
+        <AddButton labelKey="action.addAnnouncement" onClick={() => setCreateOpen(true)} />
       </div>
       <AnnouncementList
         announcements={announcements}

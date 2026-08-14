@@ -100,6 +100,8 @@ export const labels = {
   "action.addSubject": "Add subject",
   "action.addAssignment": "New assignment",
   "action.addLesson": "New lesson",
+  "action.addAnnouncement": "New announcement",
+  "action.addInquiry": "New inquiry",
   "students.tags.title": "Student tags",
   "students.tags.description": "Create tags and assign them to students. Tags are visible on the student dashboard.",
   "students.tags.add": "Add tag",

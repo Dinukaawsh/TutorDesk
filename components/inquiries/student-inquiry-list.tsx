@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import type { Inquiry, InquiryEdit, InquiryStatus } from "@prisma/client";
-import { FiEdit2, FiPlus } from "react-icons/fi";
+import { FiEdit2 } from "react-icons/fi";
 import { InquiryForm } from "@/components/inquiries/inquiry-form";
 import { FormModal } from "@/components/modals/form-modal";
 import { IconButton } from "@/components/modals/icon-button";
+import { AddButton } from "@/components/ui/add-button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { formatDateTime } from "@/lib/utils";
 
@@ -26,12 +27,7 @@ export function StudentInquiryList({ inquiries }: StudentInquiryListProps) {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <IconButton
-          labelKey="action.add"
-          icon={<FiPlus className="h-4 w-4" />}
-          variant="default"
-          onClick={() => setCreateOpen(true)}
-        />
+        <AddButton labelKey="action.addInquiry" onClick={() => setCreateOpen(true)} />
       </div>
       {inquiries.length === 0 ? (
         <p className="text-sm text-muted-foreground">You have not submitted any inquiries yet.</p>

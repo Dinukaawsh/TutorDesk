@@ -1,11 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { FiPlus } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import { createLessonAction } from "@/actions/lesson.actions";
 import { FormModal } from "@/components/modals/form-modal";
-import { IconButton } from "@/components/modals/icon-button";
+import { AddButton } from "@/components/ui/add-button";
 import { LessonForm } from "@/components/lessons/lesson-form";
 import { LessonList } from "@/components/lessons/lesson-list";
 import type { LessonCardData } from "@/components/lessons/lesson-card";
@@ -27,10 +26,8 @@ export function LessonsPageClient({ lessons, subjects }: LessonsPageClientProps)
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <IconButton
+        <AddButton
           labelKey="action.addLesson"
-          icon={<FiPlus className="h-4 w-4" />}
-          variant="default"
           onClick={() => setCreateOpen(true)}
           disabled={subjects.length === 0}
         />

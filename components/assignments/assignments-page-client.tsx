@@ -1,13 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { FiPlus } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import { createAssignmentAction } from "@/actions/assignment.actions";
 import { AssignmentCard, type AssignmentCardData } from "@/components/assignments/assignment-card";
 import { AssignmentForm } from "@/components/assignments/assignment-form";
 import { FormModal } from "@/components/modals/form-modal";
-import { IconButton } from "@/components/modals/icon-button";
+import { AddButton } from "@/components/ui/add-button";
 
 type AssignmentsPageClientProps = {
   assignments: AssignmentCardData[];
@@ -31,10 +30,8 @@ export function AssignmentsPageClient({
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <IconButton
+        <AddButton
           labelKey="action.addAssignment"
-          icon={<FiPlus className="h-4 w-4" />}
-          variant="default"
           onClick={() => setCreateOpen(true)}
           disabled={subjects.length === 0}
         />

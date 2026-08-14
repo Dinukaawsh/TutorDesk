@@ -1,13 +1,12 @@
 ﻿"use client";
 
 import { useState } from "react";
-import { FiPlus } from "react-icons/fi";
 import { StudentFilters, type SubjectOption, type TagOption } from "@/components/students/student-filters";
 import { StudentForm } from "@/components/students/student-form";
 import { StudentTable, type StudentRow } from "@/components/students/student-table";
 import { StudentTagsManager, type StudentTagOption } from "@/components/students/student-tags-manager";
 import { FormModal } from "@/components/modals/form-modal";
-import { IconButton } from "@/components/modals/icon-button";
+import { AddButton } from "@/components/ui/add-button";
 
 type StudentsPageClientProps = {
   students: StudentRow[];
@@ -29,12 +28,7 @@ export function StudentsPageClient({
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <IconButton
-          labelKey="action.addStudent"
-          icon={<FiPlus className="h-4 w-4" />}
-          variant="default"
-          onClick={() => setCreateOpen(true)}
-        />
+        <AddButton labelKey="action.addStudent" onClick={() => setCreateOpen(true)} />
       </div>
       <StudentTagsManager tags={tagStats} />
       <StudentFilters subjects={subjects} grades={grades} tags={tags} />
