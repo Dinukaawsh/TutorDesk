@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { FiPlus } from "react-icons/fi";
-import { StudentFilters, type SubjectOption } from "@/components/students/student-filters";
+import { StudentFilters, type SubjectOption, type TagOption } from "@/components/students/student-filters";
 import { StudentForm } from "@/components/students/student-form";
 import { StudentTable, type StudentRow } from "@/components/students/student-table";
+import { StudentTagsManager, type StudentTagOption } from "@/components/students/student-tags-manager";
 import { FormModal } from "@/components/modals/form-modal";
 import { IconButton } from "@/components/modals/icon-button";
 
@@ -12,12 +13,16 @@ type StudentsPageClientProps = {
   students: StudentRow[];
   subjects: SubjectOption[];
   grades: string[];
+  tags: TagOption[];
+  tagStats: StudentTagOption[];
 };
 
 export function StudentsPageClient({
   students,
   subjects,
   grades,
+  tags,
+  tagStats,
 }: StudentsPageClientProps) {
   const [createOpen, setCreateOpen] = useState(false);
 
@@ -31,8 +36,9 @@ export function StudentsPageClient({
           onClick={() => setCreateOpen(true)}
         />
       </div>
-      <StudentFilters subjects={subjects} grades={grades} />
-      <StudentTable students={students} subjects={subjects} />
+      <StudentTagsManager tags={tagStats} />
+      <StudentFilters subjects={subjects} grades={grades} tags={tags} />
+      <StudentTable students={students} subjects={subjects} tags={tags} />
 
       <FormModal
         open={createOpen}
@@ -43,7 +49,13 @@ export function StudentsPageClient({
         saveLabel="Create student"
         onCancel={() => setCreateOpen(false)}
       >
-        <StudentForm formId="student-form" hideActions subjects={subjects} onSuccess={() => setCreateOpen(false)} />
+        <StudentForm
+          formId="student-form"
+          hideActions
+          subjects={subjects}
+          tags={tags}
+          onSuccess={() => setCreateOpen(false)}
+        />
       </FormModal>
     </div>
   );

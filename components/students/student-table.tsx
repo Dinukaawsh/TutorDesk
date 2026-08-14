@@ -19,7 +19,8 @@ import {
   StudentForm,
   type StudentFormData,
 } from "@/components/students/student-form";
-import type { SubjectOption } from "@/components/students/student-filters";
+import type { SubjectOption, TagOption } from "@/components/students/student-filters";
+import { StudentTagBadge } from "@/components/students/student-tag-badge";
 import { ConfirmModal } from "@/components/modals/confirm-modal";
 import { FormModal } from "@/components/modals/form-modal";
 import { IconButton } from "@/components/modals/icon-button";
@@ -44,6 +45,7 @@ export type StudentRow = {
   isDisabled: boolean;
   avatarUrl: string | null;
   subjects: { id: string; name: string }[];
+  tags: { id: string; name: string; color: string | null }[];
   feeSummary: string;
   feePaymentLabelKey: LabelKey;
   form: StudentFormData;
@@ -52,6 +54,7 @@ export type StudentRow = {
 type StudentTableProps = {
   students: StudentRow[];
   subjects: SubjectOption[];
+  tags: TagOption[];
 };
 
 const resetInitial: ActionResult = { success: false };
@@ -85,6 +88,7 @@ function ResetPasswordDialog({
       title="Reset password"
       formId="reset-password-form"
       saveLabel="Reset password"
+      loading={pending}
       onCancel={() => onOpenChange(false)}
     >
       {studentId ? (
@@ -111,7 +115,7 @@ function ResetPasswordDialog({
   );
 }
 
-export function StudentTable({ students, subjects }: StudentTableProps) {
+export function StudentTable({ students, subjects, tags }: StudentTableProps) {
   const [page, setPage] = useState(1);
 
   useEffect(() => {
@@ -166,6 +170,7 @@ export function StudentTable({ students, subjects }: StudentTableProps) {
               <th className="p-3 font-medium">Student</th>
               <th className="p-3 font-medium">Grade</th>
               <th className="p-3 font-medium">Subjects</th>
+              <th className="p-3 font-medium">Tags</th>
               <th className="p-3 font-medium">Fees (month)</th>
               <th className="p-3 font-medium">{t("table.paymentStatus")}</th>
               <th className="p-3 font-medium">{t("table.accountStatus")}</th>
@@ -196,6 +201,14 @@ export function StudentTable({ students, subjects }: StudentTableProps) {
                       <StatusBadge key={s.id} label={s.name} tone="muted" />
                     ))}
                     {student.subjects.length === 0 ? "-" : null}
+                  </div>
+                </td>
+                <td className="p-3 align-top">
+                  <div className="flex flex-wrap gap-1">
+                    {student.tags.map((tag) => (
+                      <StudentTagBadge key={tag.id} name={tag.name} color={tag.color} />
+                    ))}
+                    {student.tags.length === 0 ? "-" : null}
                   </div>
                 </td>
                 <td className="p-3 align-top text-muted-foreground">{student.feeSummary}</td>
@@ -267,6 +280,7 @@ export function StudentTable({ students, subjects }: StudentTableProps) {
             formId="student-form"
             hideActions
             subjects={subjects}
+            tags={tags}
             student={editStudent}
             onSuccess={() => setEditStudent(null)}
           />

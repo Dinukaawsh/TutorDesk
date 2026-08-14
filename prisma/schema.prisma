@@ -90,6 +90,7 @@ model User {
   notifications         Notification[]
   individualAssignments Assignment[] @relation("IndividualStudent")
   inquiries             Inquiry[]
+  tagAssignments        StudentTagAssignment[]
 }
 
 model Subject {
@@ -246,4 +247,23 @@ model InquiryEdit {
   attachmentsBefore String[]
   editedAt          DateTime @default(now())
   inquiry           Inquiry  @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+}
+
+model StudentTag {
+  id          String                 @id @default(cuid())
+  name        String                 @unique
+  color       String?                @default("#2563eb")
+  createdAt   DateTime               @default(now())
+  assignments StudentTagAssignment[]
+}
+
+model StudentTagAssignment {
+  id        String     @id @default(cuid())
+  userId    String
+  tagId     String
+  createdAt DateTime   @default(now())
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tag       StudentTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tagId])
 }

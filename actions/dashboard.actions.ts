@@ -60,6 +60,7 @@ export type TeacherDashboardStudentRow = {
     whatsapp: string | null;
     avatarUrl: string | null;
     subjectIds: string[];
+    tagIds: string[];
   };
 };
 
@@ -158,6 +159,9 @@ export async function getTeacherDashboard(
         feeRecords: {
           where: { month, year },
         },
+        tagAssignments: {
+          select: { tagId: true },
+        },
       },
     }),
     prisma.user.count({ where: studentWhere }),
@@ -233,6 +237,7 @@ export async function getTeacherDashboard(
       whatsapp: s.whatsapp,
       avatarUrl: s.avatarUrl,
       subjectIds: s.enrollments.map((e) => e.subjectId),
+      tagIds: s.tagAssignments.map((row) => row.tagId),
     },
   }));
 
@@ -270,6 +275,7 @@ export async function getTeacherDashboard(
 
 export type StudentDashboardData = {
   student: { name: string; grade: string | null };
+  tags: { id: string; name: string; color: string | null }[];
   stats: {
     enrolledSubjects: number;
     pendingAssignments: number;
@@ -349,6 +355,10 @@ export async function getStudentDashboard(): Promise<StudentDashboardData | null
         where: { month, year },
         include: { subject: { select: { id: true } } },
       },
+      tagAssignments: {
+        include: { tag: { select: { id: true, name: true, color: true } } },
+        orderBy: { tag: { name: "asc" } },
+      },
     },
   });
 
@@ -418,6 +428,11 @@ export async function getStudentDashboard(): Promise<StudentDashboardData | null
 
   return {
     student: { name: student.name, grade: student.grade },
+    tags: student.tagAssignments.map((row) => ({
+      id: row.tag.id,
+      name: row.tag.name,
+      color: row.tag.color,
+    })),
     stats: {
       enrolledSubjects: student.enrollments.length,
       pendingAssignments: pendingAssignments.length,

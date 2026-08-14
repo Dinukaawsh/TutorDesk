@@ -9,9 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { useActionToast } from "@/hooks/use-action-toast";
+import { ModalActionButtonContent } from "@/components/modals/modal-action-button-content";
 
 const initialState: ActionResult = { success: false };
-const FORM_ID = "confirm-modal-form";
 
 export type ConfirmNoteField = {
   name: string;
@@ -31,6 +31,7 @@ type ConfirmModalBase = {
   confirmLabel?: string;
   cancelLabel?: string;
   confirmVariant?: "default" | "destructive";
+  formId?: string;
 };
 
 type ConfirmModalFormProps = ConfirmModalBase & {
@@ -65,6 +66,104 @@ function isFormProps(props: ConfirmModalProps): props is ConfirmModalFormProps {
   return typeof (props as ConfirmModalFormProps).formAction === "function";
 }
 
+type ConfirmModalFormBodyProps = ConfirmModalFormProps & {
+  formId: string;
+  onClose: () => void;
+};
+
+function ConfirmModalFormBody({
+  open,
+  onOpenChange,
+  title,
+  message,
+  description,
+  confirmLabel = "Confirm",
+  cancelLabel = "Cancel",
+  confirmVariant = "default",
+  formAction,
+  note,
+  pending: pendingProp,
+  onSuccess,
+  children,
+  formId,
+  onClose,
+}: ConfirmModalFormBodyProps) {
+  const [state, action, formPending] = useActionState(formAction, initialState);
+  useActionToast(state);
+
+  const pending = pendingProp ?? formPending;
+  const bodyText = message ?? description;
+  const noteField = note;
+
+  useEffect(() => {
+    if (state.success) {
+      onSuccess?.();
+      onClose();
+    }
+  }, [state.success, onSuccess, onClose]);
+
+  const footer = [
+    <Button
+      key="cancel"
+      type="button"
+      variant="outline"
+      className="w-full"
+      disabled={pending}
+      onClick={() => onOpenChange(false)}
+    >
+      {cancelLabel}
+    </Button>,
+    <Button
+      key="confirm"
+      type="submit"
+      form={formId}
+      className="w-full"
+      variant={confirmVariant}
+      disabled={pending}
+    >
+      <ModalActionButtonContent pending={pending} label={confirmLabel} pendingLabel="Please wait..." />
+    </Button>,
+  ];
+
+  return (
+    <AppModal open={open} onOpenChange={onOpenChange} title={title} footer={footer}>
+      <form id={formId} action={action} className="space-y-4">
+        {bodyText ? <p className="text-sm text-foreground">{bodyText}</p> : null}
+        {noteField ? (
+          <div className="space-y-2">
+            <Label htmlFor={`confirm-note-${noteField.name}`}>{noteField.label}</Label>
+            {noteField.multiline !== false ? (
+              <Textarea
+                id={`confirm-note-${noteField.name}`}
+                name={noteField.name}
+                rows={noteField.rows ?? 3}
+                required={noteField.required}
+                placeholder={noteField.placeholder}
+                disabled={pending}
+              />
+            ) : (
+              <Input
+                id={`confirm-note-${noteField.name}`}
+                name={noteField.name}
+                required={noteField.required}
+                placeholder={noteField.placeholder}
+                disabled={pending}
+              />
+            )}
+            {state.fieldErrors?.[noteField.name]?.[0] ? (
+              <p className="text-sm text-muted-foreground">{state.fieldErrors[noteField.name][0]}</p>
+            ) : null}
+          </div>
+        ) : null}
+        {children}
+        {state.message && !state.success ? (
+          <p className="text-sm text-muted-foreground">{state.message}</p>
+        ) : null}
+      </form>
+    </AppModal>
+  );
+}
+
 export function ConfirmModal(props: ConfirmModalProps) {
   const {
     open,
@@ -75,41 +174,28 @@ export function ConfirmModal(props: ConfirmModalProps) {
     confirmLabel = "Confirm",
     cancelLabel = "Cancel",
     confirmVariant = "default",
+    formId: formIdProp,
   } = props;
 
   const [reason, setReason] = useState("");
+  const [formSession, setFormSession] = useState(0);
 
   useEffect(() => {
     if (!open) {
       setReason("");
+      return;
     }
-  }, [open]);
-
-  const [state, action, formPending] = useActionState(
-    isFormProps(props) ? props.formAction : async () => initialState,
-    initialState,
-  );
-
-  useActionToast(state);
-
-  useEffect(() => {
-    if (isFormProps(props) && state.success) {
-      props.onSuccess?.();
-      onOpenChange(false);
+    if (isFormProps(props)) {
+      setFormSession((value) => value + 1);
     }
-  }, [state.success, onOpenChange, props]);
-
-  const pending = isFormProps(props)
-    ? props.pending ?? formPending
-    : props.loading ?? props.pending ?? false;
-
-  const noteField = isFormProps(props) ? props.note : undefined;
-  const formChildren = isFormProps(props) ? props.children : null;
-  const bodyText = message ?? description;
+  }, [open, props]);
 
   const showReasonField = !isFormProps(props) && props.showReason === true;
   const reasonInvalid =
     showReasonField && props.reasonRequired === true && reason.trim().length === 0;
+  const pending = isFormProps(props)
+    ? props.pending ?? false
+    : props.loading ?? props.pending ?? false;
 
   async function handleCallbackConfirm() {
     if (isFormProps(props) || reasonInvalid || pending) {
@@ -118,87 +204,68 @@ export function ConfirmModal(props: ConfirmModalProps) {
     await props.onConfirm(showReasonField ? reason.trim() : undefined);
   }
 
-  const footer = (
-    <>
-      <Button type="button" variant="outline" className="w-full" disabled={pending} onClick={() => onOpenChange(false)}>
-        {cancelLabel}
-      </Button>
-      {isFormProps(props) ? (
-        <Button type="submit" form={FORM_ID} className="w-full" variant={confirmVariant} disabled={pending}>
-          {pending ? "Please wait..." : confirmLabel}
-        </Button>
-      ) : (
-        <Button
-          type="button"
-          className="w-full"
-          variant={confirmVariant}
-          disabled={pending || reasonInvalid}
-          onClick={() => void handleCallbackConfirm()}
-        >
-          {pending ? "Please wait..." : confirmLabel}
-        </Button>
-      )}
-    </>
-  );
+  if (isFormProps(props)) {
+    const formId = formIdProp ?? `confirm-modal-form-${formSession}`;
+    return (
+      <ConfirmModalFormBody
+        key={formSession}
+        {...props}
+        open={open}
+        onOpenChange={onOpenChange}
+        title={title}
+        message={message}
+        description={description}
+        confirmLabel={confirmLabel}
+        cancelLabel={cancelLabel}
+        confirmVariant={confirmVariant}
+        formId={formId}
+        onClose={() => onOpenChange(false)}
+      />
+    );
+  }
 
-  const fields = (
-    <>
-      {bodyText ? <p className="text-sm text-foreground">{bodyText}</p> : null}
-      {noteField ? (
-        <div className="space-y-2">
-          <Label htmlFor={`confirm-note-${noteField.name}`}>{noteField.label}</Label>
-          {noteField.multiline !== false ? (
-            <Textarea
-              id={`confirm-note-${noteField.name}`}
-              name={noteField.name}
-              rows={noteField.rows ?? 3}
-              required={noteField.required}
-              placeholder={noteField.placeholder}
-              disabled={pending}
-            />
-          ) : (
-            <Input
-              id={`confirm-note-${noteField.name}`}
-              name={noteField.name}
-              required={noteField.required}
-              placeholder={noteField.placeholder}
-              disabled={pending}
-            />
-          )}
-          {state.fieldErrors?.[noteField.name]?.[0] ? (
-            <p className="text-sm text-muted-foreground">{state.fieldErrors[noteField.name][0]}</p>
-          ) : null}
-        </div>
-      ) : null}
-      {showReasonField ? (
-        <div className="space-y-2">
-          <Label htmlFor="confirm-modal-reason">{props.reasonLabel ?? "Reason"}</Label>
-          <Textarea
-            id="confirm-modal-reason"
-            value={reason}
-            onChange={(event) => setReason(event.target.value)}
-            rows={3}
-            required={props.reasonRequired}
-            disabled={pending}
-          />
-        </div>
-      ) : null}
-      {formChildren}
-      {state.message && !state.success && isFormProps(props) ? (
-        <p className="text-sm text-muted-foreground">{state.message}</p>
-      ) : null}
-    </>
-  );
+  const bodyText = message ?? description;
+  const footer = [
+    <Button
+      key="cancel"
+      type="button"
+      variant="outline"
+      className="w-full"
+      disabled={pending}
+      onClick={() => onOpenChange(false)}
+    >
+      {cancelLabel}
+    </Button>,
+    <Button
+      key="confirm"
+      type="button"
+      className="w-full"
+      variant={confirmVariant}
+      disabled={pending || reasonInvalid}
+      onClick={() => void handleCallbackConfirm()}
+    >
+      <ModalActionButtonContent pending={pending} label={confirmLabel} pendingLabel="Please wait..." />
+    </Button>,
+  ];
 
   return (
     <AppModal open={open} onOpenChange={onOpenChange} title={title} footer={footer}>
-      {isFormProps(props) ? (
-        <form id={FORM_ID} action={action} className="space-y-4">
-          {fields}
-        </form>
-      ) : (
-        <div className="space-y-4">{fields}</div>
-      )}
+      <div className="space-y-4">
+        {bodyText ? <p className="text-sm text-foreground">{bodyText}</p> : null}
+        {showReasonField ? (
+          <div className="space-y-2">
+            <Label htmlFor="confirm-modal-reason">{props.reasonLabel ?? "Reason"}</Label>
+            <Textarea
+              id="confirm-modal-reason"
+              value={reason}
+              onChange={(event) => setReason(event.target.value)}
+              rows={3}
+              required={props.reasonRequired}
+              disabled={pending}
+            />
+          </div>
+        ) : null}
+      </div>
     </AppModal>
   );
 }

@@ -4,6 +4,8 @@ import * as React from "react";
 import { AppModal } from "@/components/ui/app-modal";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { FormModalProvider, useFormModalPending } from "@/components/modals/form-modal-context";
+import { ModalActionButtonContent } from "@/components/modals/modal-action-button-content";
 
 type FormModalProps = {
   open: boolean;
@@ -45,6 +47,74 @@ function findChildFormId(node: React.ReactNode): string | undefined {
   return found;
 }
 
+function FormModalShell({
+  open,
+  onOpenChange,
+  title,
+  description,
+  children,
+  className,
+  onSave,
+  onCancel,
+  saveLabel,
+  cancelLabel,
+  loading,
+  saveDisabled,
+  resolvedFormId,
+  size,
+  showFooter,
+}: FormModalProps & { resolvedFormId?: string; showFooter: boolean }) {
+  const ctx = useFormModalPending();
+  const pending = loading || ctx?.pending === true;
+
+  function handleCancel() {
+    onCancel?.();
+    onOpenChange(false);
+  }
+
+  const body = (
+    <div className={cn("space-y-4", className)}>
+      {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
+      {children}
+    </div>
+  );
+
+  const footer = showFooter
+    ? [
+        <Button
+          key="cancel"
+          type="button"
+          variant="outline"
+          className="w-full"
+          disabled={pending}
+          onClick={handleCancel}
+        >
+          {cancelLabel ?? "Cancel"}
+        </Button>,
+        <Button
+          key="save"
+          type={resolvedFormId ? "submit" : "button"}
+          form={resolvedFormId}
+          className="w-full"
+          disabled={pending || saveDisabled}
+          onClick={resolvedFormId ? undefined : onSave}
+        >
+          <ModalActionButtonContent
+            pending={pending}
+            label={saveLabel ?? "Save"}
+            pendingLabel="Saving..."
+          />
+        </Button>,
+      ]
+    : undefined;
+
+  return (
+    <AppModal open={open} onOpenChange={onOpenChange} title={title} size={size} footer={footer}>
+      {body}
+    </AppModal>
+  );
+}
+
 export function FormModal({
   open,
   onOpenChange,
@@ -64,50 +134,26 @@ export function FormModal({
   const resolvedFormId = formId ?? findChildFormId(children);
   const showFooter = Boolean(onSave || resolvedFormId);
 
-  function handleCancel() {
-    onCancel?.();
-    onOpenChange(false);
-  }
-
-  const body = (
-    <div className={cn("space-y-4", className)}>
-      {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
-      {children}
-    </div>
-  );
-
-  if (!showFooter) {
-    return (
-      <AppModal open={open} onOpenChange={onOpenChange} title={title} size={size}>
-        {body}
-      </AppModal>
-    );
-  }
-
   return (
-    <AppModal
-      open={open}
-      onOpenChange={onOpenChange}
-      title={title}
-      size={size}
-      footer={
-        <>
-          <Button type="button" variant="outline" className="w-full" disabled={loading} onClick={handleCancel}>
-            {cancelLabel}
-          </Button>
-          <Button
-            type={resolvedFormId ? "submit" : "button"}
-            form={resolvedFormId}
-            className="w-full"
-            disabled={loading || saveDisabled}
-            onClick={resolvedFormId ? undefined : onSave}
-          >
-            {loading ? "Saving..." : saveLabel}
-          </Button>
-        </>
-      }
-    >
-      {body}
-    </AppModal>
+    <FormModalProvider open={open}>
+      <FormModalShell
+        open={open}
+        onOpenChange={onOpenChange}
+        title={title}
+        description={description}
+        className={className}
+        onSave={onSave}
+        onCancel={onCancel}
+        saveLabel={saveLabel}
+        cancelLabel={cancelLabel}
+        loading={loading}
+        saveDisabled={saveDisabled}
+        resolvedFormId={resolvedFormId}
+        size={size}
+        showFooter={showFooter}
+      >
+        {children}
+      </FormModalShell>
+    </FormModalProvider>
   );
 }

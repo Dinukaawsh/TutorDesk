@@ -1,6 +1,7 @@
 ﻿import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getTeacherDashboard } from "@/actions/dashboard.actions";
+import { listStudentTags } from "@/actions/tag.actions";
 import { TeacherDashboardFilters } from "@/components/dashboard/teacher-dashboard-filters";
 import { TeacherStudentOverviewTable } from "@/components/dashboard/teacher-student-overview-table";
 import { PageHeader } from "@/components/layout/page-header";
@@ -54,12 +55,16 @@ function StatCard({ title, value }: { title: string; value: number }) {
 
 export default async function TeacherDashboardPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const data = await getTeacherDashboard({
-    subjectId: param(params.subjectId),
-    grade: param(params.grade),
-    month: parseMonth(param(params.month)),
-    year: parseYear(param(params.year)),
-  });
+  const [data, tagRows] = await Promise.all([
+    getTeacherDashboard({
+      subjectId: param(params.subjectId),
+      grade: param(params.grade),
+      month: parseMonth(param(params.month)),
+      year: parseYear(param(params.year)),
+    }),
+    listStudentTags(),
+  ]);
+  const tags = tagRows.map((tag) => ({ id: tag.id, name: tag.name, color: tag.color }));
 
   if (!data) {
     redirect("/login");
@@ -96,7 +101,7 @@ export default async function TeacherDashboardPage({ searchParams }: PageProps) 
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">{t("dashboard.section.studentOverview")}</h2>
-        <TeacherStudentOverviewTable students={data.students} subjects={data.subjects} />
+        <TeacherStudentOverviewTable students={data.students} subjects={data.subjects} tags={tags} />
       </section>
 
       <section className="space-y-3">

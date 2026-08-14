@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useActionToast } from "@/hooks/use-action-toast";
-import type { SubjectOption } from "@/components/students/student-filters";
+import { useReportFormModalPending } from "@/components/modals/form-modal-context";
+import type { SubjectOption, TagOption } from "@/components/students/student-filters";
 
 const initialState: ActionResult = { success: false };
 
@@ -23,10 +24,12 @@ export type StudentFormData = {
   whatsapp: string | null;
   avatarUrl: string | null;
   subjectIds: string[];
+  tagIds: string[];
 };
 
 type StudentFormProps = {
   subjects: SubjectOption[];
+  tags: TagOption[];
   student?: StudentFormData | null;
   onSuccess?: () => void;
   onCancel?: () => void;
@@ -34,11 +37,12 @@ type StudentFormProps = {
   hideActions?: boolean;
 };
 
-export function StudentForm({ subjects, student, onSuccess, onCancel, formId, hideActions }: StudentFormProps) {
+export function StudentForm({ subjects, tags, student, onSuccess, onCancel, formId, hideActions }: StudentFormProps) {
   const action = student ? updateStudentAction : createStudentAction;
   const [state, formAction, pending] = useActionState(action, initialState);
 
   useActionToast(state);
+  useReportFormModalPending(pending);
 
   useEffect(() => {
     if (state.success) {
@@ -138,6 +142,33 @@ export function StudentForm({ subjects, student, onSuccess, onCancel, formId, hi
           })}
           {subjects.length === 0 ? (
             <p className="text-sm text-muted-foreground">Create subjects before enrolling students.</p>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Tags</Label>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {tags.map((tag) => {
+            const checked = student?.tagIds.includes(tag.id) ?? false;
+            return (
+              <label
+                key={tag.id}
+                className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm"
+              >
+                <input
+                  type="checkbox"
+                  name="tagIds"
+                  value={tag.id}
+                  defaultChecked={checked}
+                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary/40"
+                />
+                {tag.name}
+              </label>
+            );
+          })}
+          {tags.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Create tags above before assigning them.</p>
           ) : null}
         </div>
       </div>

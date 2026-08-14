@@ -75,7 +75,15 @@ export function AppModal({
               twoColumnFooter ? "grid grid-cols-2 gap-2" : "flex flex-col gap-2",
             )}
           >
-            {footerItems}
+            {footerItems.map((item, index) =>
+              React.isValidElement(item) ? (
+                React.cloneElement(item, {
+                  key: item.key ?? `footer-${index}`,
+                } as { key: string })
+              ) : (
+                <React.Fragment key={`footer-${index}`}>{item}</React.Fragment>
+              ),
+            )}
           </div>
         ) : null}
       </DialogContent>

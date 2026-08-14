@@ -2,10 +2,13 @@
 
 import { useState } from "react";
 import { FiPlus } from "react-icons/fi";
+import { deleteAnnouncementAction } from "@/actions/announcement.actions";
 import { AnnouncementForm } from "@/components/announcements/announcement-form";
 import { AnnouncementList } from "@/components/announcements/announcement-list";
+import { ConfirmModal } from "@/components/modals/confirm-modal";
 import { FormModal } from "@/components/modals/form-modal";
 import { IconButton } from "@/components/modals/icon-button";
+import { t } from "@/content/navigation";
 
 type SubjectOption = { id: string; name: string };
 
@@ -24,6 +27,9 @@ export function TeacherAnnouncementsClient({
   const [editTarget, setEditTarget] = useState<
     Parameters<typeof AnnouncementList>[0]["announcements"][number] | null
   >(null);
+  const [deleteTarget, setDeleteTarget] = useState<
+    Parameters<typeof AnnouncementList>[0]["announcements"][number] | null
+  >(null);
 
   return (
     <div className="space-y-4">
@@ -35,7 +41,11 @@ export function TeacherAnnouncementsClient({
           onClick={() => setCreateOpen(true)}
         />
       </div>
-      <AnnouncementList announcements={announcements} onEdit={setEditTarget} />
+      <AnnouncementList
+        announcements={announcements}
+        onEdit={setEditTarget}
+        onDelete={setDeleteTarget}
+      />
       <FormModal
         open={createOpen}
         onOpenChange={setCreateOpen}
@@ -74,6 +84,24 @@ export function TeacherAnnouncementsClient({
           />
         ) : null}
       </FormModal>
+      <ConfirmModal
+        key={deleteTarget?.id ?? "announcement-delete-closed"}
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title={t("modal.deleteAnnouncement.title")}
+        formId={deleteTarget ? `delete-announcement-${deleteTarget.id}` : undefined}
+        description={
+          deleteTarget
+            ? `Delete "${deleteTarget.title}"? ${t("modal.deleteAnnouncement.description")}`
+            : undefined
+        }
+        confirmLabel={t("action.delete")}
+        confirmVariant="destructive"
+        formAction={deleteAnnouncementAction}
+        onSuccess={() => setDeleteTarget(null)}
+      >
+        {deleteTarget ? <input type="hidden" name="id" value={deleteTarget.id} /> : null}
+      </ConfirmModal>
     </div>
   );
 }

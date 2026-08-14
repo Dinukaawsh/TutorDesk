@@ -5,6 +5,7 @@ import { getStudentDashboard } from "@/actions/dashboard.actions";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FeeStatusBadge, StatusBadge } from "@/components/ui/status-badge";
+import { StudentTagBadge } from "@/components/students/student-tag-badge";
 import { t } from "@/content/navigation";
 import { cn } from "@/lib/utils";
 
@@ -53,6 +54,15 @@ export default async function StudentDashboardPage() {
             : t("dashboard.student.description")
         }
       />
+
+      {data.tags.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm font-medium text-muted-foreground">{t("students.tags.assign")}:</span>
+          {data.tags.map((tag) => (
+            <StudentTagBadge key={tag.id} name={tag.name} color={tag.color} />
+          ))}
+        </div>
+      ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard

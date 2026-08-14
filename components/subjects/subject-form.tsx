@@ -9,6 +9,7 @@ import { ColorPicker } from "@/components/ui/color-picker";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useActionToast } from "@/hooks/use-action-toast";
+import { useReportFormModalPending } from "@/components/modals/form-modal-context";
 import type { SubjectCardData } from "@/components/subjects/subject-card";
 
 const initialState: ActionResult = { success: false };
@@ -26,6 +27,7 @@ export function SubjectForm({ subject, onSuccess, onCancel, formId, hideActions 
   const [state, formAction, pending] = useActionState(action, initialState);
 
   useActionToast(state);
+  useReportFormModalPending(pending);
 
   useEffect(() => {
     if (state.success) {

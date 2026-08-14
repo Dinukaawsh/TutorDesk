@@ -12,7 +12,7 @@ import { createNotification } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { requireStudentSession } from "@/lib/server-auth";
 import { requireTeacherSession } from "@/lib/teacher-auth";
-import { createAnnouncementSchema, updateAnnouncementSchema } from "@/schemas/announcement.schema";
+import { createAnnouncementSchema, deleteAnnouncementSchema, updateAnnouncementSchema } from "@/schemas/announcement.schema";
 
 function parseAnnouncementForm(formData: FormData) {
   return {
@@ -159,6 +159,43 @@ export async function updateAnnouncementAction(
   revalidatePath("/teacher/announcements");
   revalidatePath("/student/announcements");
   return { success: true, message: "Announcement updated." };
+}
+
+export async function saveAnnouncementAction(
+  prev: ActionResult | undefined,
+  formData: FormData,
+): Promise<ActionResult> {
+  const id = String(formData.get("id") ?? "").trim();
+  if (id) {
+    return updateAnnouncementAction(prev, formData);
+  }
+  return createAnnouncementAction(prev, formData);
+}
+
+export async function deleteAnnouncementAction(
+  _prev: ActionResult | undefined,
+  formData: FormData,
+): Promise<ActionResult> {
+  const session = await requireTeacherSession();
+  if (!session) {
+    return { success: false, message: "Unauthorized." };
+  }
+
+  const parsed = deleteAnnouncementSchema.safeParse({ id: formData.get("id") });
+  if (!parsed.success) {
+    return { success: false, message: "Invalid announcement." };
+  }
+
+  const existing = await prisma.announcement.findUnique({ where: { id: parsed.data.id } });
+  if (!existing) {
+    return { success: false, message: "Announcement not found." };
+  }
+
+  await prisma.announcement.delete({ where: { id: parsed.data.id } });
+
+  revalidatePath("/teacher/announcements");
+  revalidatePath("/student/announcements");
+  return { success: true, message: "Announcement deleted." };
 }
 
 export async function getTeacherAnnouncements() {

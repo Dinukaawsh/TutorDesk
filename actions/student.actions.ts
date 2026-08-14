@@ -32,6 +32,10 @@ function parseSubjectIds(formData: FormData) {
   return formData.getAll("subjectIds").map(String).filter(Boolean);
 }
 
+function parseTagIds(formData: FormData) {
+  return formData.getAll("tagIds").map(String).filter(Boolean);
+}
+
 async function ensureFeeRecordsForEnrollments(
   studentId: string,
   subjectIds: string[],
@@ -84,6 +88,29 @@ async function syncEnrollments(studentId: string, subjectIds: string[]) {
   await ensureFeeRecordsForEnrollments(studentId, toAdd);
 }
 
+async function syncStudentTags(studentId: string, tagIds: string[]) {
+  const uniqueIds = [...new Set(tagIds)];
+  const existing = await prisma.studentTagAssignment.findMany({
+    where: { userId: studentId },
+    select: { tagId: true },
+  });
+  const existingIds = new Set(existing.map((row) => row.tagId));
+  const toAdd = uniqueIds.filter((id) => !existingIds.has(id));
+  const toRemove = [...existingIds].filter((id) => !uniqueIds.includes(id));
+
+  if (toRemove.length) {
+    await prisma.studentTagAssignment.deleteMany({
+      where: { userId: studentId, tagId: { in: toRemove } },
+    });
+  }
+
+  for (const tagId of toAdd) {
+    await prisma.studentTagAssignment.create({
+      data: { userId: studentId, tagId },
+    });
+  }
+}
+
 export async function createStudentAction(
   _prev: ActionResult | undefined,
   formData: FormData,
@@ -104,6 +131,7 @@ export async function createStudentAction(
     phone: formData.get("phone") || undefined,
     whatsapp: formData.get("whatsapp") || undefined,
     subjectIds: parseSubjectIds(formData),
+    tagIds: parseTagIds(formData),
   };
 
   const parsed = createStudentSchema.safeParse(raw);
@@ -128,7 +156,7 @@ export async function createStudentAction(
   }
 
   const passwordHash = await hashPassword(parsed.data.password);
-  const { password: _pw, subjectIds, ...profile } = parsed.data;
+  const { password: _pw, subjectIds, tagIds, ...profile } = parsed.data;
 
   const student = await prisma.user.create({
     data: {
@@ -150,6 +178,7 @@ export async function createStudentAction(
   if (subjectIds.length) {
     await syncEnrollments(student.id, subjectIds);
   }
+  await syncStudentTags(student.id, tagIds);
 
   revalidateStudents();
   return { success: true, message: "Student created." };
@@ -175,6 +204,7 @@ export async function updateStudentAction(
     phone: formData.get("phone") || undefined,
     whatsapp: formData.get("whatsapp") || undefined,
     subjectIds: parseSubjectIds(formData),
+    tagIds: parseTagIds(formData),
   };
 
   const parsed = updateStudentSchema.safeParse(raw);
@@ -207,7 +237,7 @@ export async function updateStudentAction(
     avatarUrl = (await saveAvatarFile(avatar)) ?? student.avatarUrl;
   }
 
-  const { id, subjectIds, ...profile } = parsed.data;
+  const { id, subjectIds, tagIds, ...profile } = parsed.data;
 
   await prisma.user.update({
     where: { id },
@@ -225,6 +255,7 @@ export async function updateStudentAction(
   });
 
   await syncEnrollments(id, subjectIds);
+  await syncStudentTags(id, tagIds);
   revalidateStudents();
   return { success: true, message: "Student updated." };
 }
@@ -414,6 +445,7 @@ export type StudentListFilters = {
   q?: string;
   grade?: string;
   subjectId?: string;
+  tagId?: string;
   status?: "enabled" | "disabled";
   feeStatus?: FeeStatus;
 };
@@ -450,6 +482,10 @@ export async function listStudents(filters: StudentListFilters = {}) {
     where.enrollments = { some: { subjectId: filters.subjectId } };
   }
 
+  if (filters.tagId) {
+    where.tagAssignments = { some: { tagId: filters.tagId } };
+  }
+
   if (filters.feeStatus) {
     where.feeRecords = {
       some: {
@@ -471,6 +507,10 @@ export async function listStudents(filters: StudentListFilters = {}) {
       feeRecords: {
         where: { month, year },
         include: { subject: { select: { id: true, name: true } } },
+      },
+      tagAssignments: {
+        include: { tag: { select: { id: true, name: true, color: true } } },
+        orderBy: { tag: { name: "asc" } },
       },
     },
   });

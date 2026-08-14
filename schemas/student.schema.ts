@@ -11,6 +11,7 @@ export const createStudentSchema = z.object({
   phone: z.string().optional(),
   whatsapp: z.string().optional(),
   subjectIds: z.array(z.string().min(1)).default([]),
+  tagIds: z.array(z.string().min(1)).default([]),
 });
 
 export type CreateStudentInput = z.infer<typeof createStudentSchema>;
@@ -26,6 +27,7 @@ export const updateStudentSchema = z.object({
   phone: z.string().optional(),
   whatsapp: z.string().optional(),
   subjectIds: z.array(z.string().min(1)).default([]),
+  tagIds: z.array(z.string().min(1)).default([]),
 });
 
 export type UpdateStudentInput = z.infer<typeof updateStudentSchema>;

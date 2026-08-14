@@ -2,11 +2,9 @@
 
 import { useActionState, useEffect } from "react";
 import { AnnouncementTarget } from "@prisma/client";
-import {
-  createAnnouncementAction,
-  updateAnnouncementAction,
-} from "@/actions/announcement.actions";
+import { saveAnnouncementAction } from "@/actions/announcement.actions";
 import type { ActionResult } from "@/actions/auth.actions";
+import { useReportFormModalPending } from "@/components/modals/form-modal-context";
 import { Button } from "@/components/ui/button";
 import { FormSelect } from "@/components/ui/form-select";
 import { Input } from "@/components/ui/input";
@@ -51,9 +49,9 @@ export function AnnouncementForm({
   formId,
   hideActions,
 }: AnnouncementFormProps) {
-  const action = announcement ? updateAnnouncementAction : createAnnouncementAction;
-  const [state, formAction, pending] = useActionState(action, initial);
+  const [state, formAction, pending] = useActionState(saveAnnouncementAction, initial);
   useActionToast(state);
+  useReportFormModalPending(pending);
 
   useEffect(() => {
     if (state.success) {

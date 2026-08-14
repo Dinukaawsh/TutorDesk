@@ -15,12 +15,15 @@ import {
 
 export type SubjectOption = { id: string; name: string };
 
+export type TagOption = { id: string; name: string; color: string | null };
+
 type StudentFiltersProps = {
   subjects: SubjectOption[];
   grades: string[];
+  tags: TagOption[];
 };
 
-export function StudentFilters({ subjects, grades }: StudentFiltersProps) {
+export function StudentFilters({ subjects, grades, tags }: StudentFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [pending, startTransition] = useTransition();
@@ -28,6 +31,7 @@ export function StudentFilters({ subjects, grades }: StudentFiltersProps) {
   const q = searchParams.get("q") ?? "";
   const grade = searchParams.get("grade") ?? "";
   const subjectId = searchParams.get("subjectId") ?? "";
+  const tagId = searchParams.get("tagId") ?? "";
   const status = searchParams.get("status") ?? "";
   const feeStatus = searchParams.get("feeStatus") ?? "";
 
@@ -47,7 +51,7 @@ export function StudentFilters({ subjects, grades }: StudentFiltersProps) {
 
   return (
     <form
-      className="grid gap-3 rounded-xl border border-border bg-white/80 p-4 backdrop-blur md:grid-cols-2 lg:grid-cols-6"
+      className="grid gap-3 rounded-xl border border-border bg-white/80 p-4 backdrop-blur md:grid-cols-2 lg:grid-cols-7"
       onSubmit={(e) => {
         e.preventDefault();
         const fd = new FormData(e.currentTarget);
@@ -55,6 +59,7 @@ export function StudentFilters({ subjects, grades }: StudentFiltersProps) {
           q: String(fd.get("q") ?? ""),
           grade: String(fd.get("grade") ?? ""),
           subjectId: String(fd.get("subjectId") ?? ""),
+          tagId: String(fd.get("tagId") ?? ""),
           status: String(fd.get("status") ?? ""),
           feeStatus: String(fd.get("feeStatus") ?? ""),
         });
@@ -107,6 +112,26 @@ export function StudentFilters({ subjects, grades }: StudentFiltersProps) {
         <input type="hidden" name="subjectId" value={subjectId} />
       </div>
       <div className="space-y-1">
+        <Label>Tag</Label>
+        <Select
+          value={tagId || "all"}
+          onValueChange={(value) => apply({ tagId: value === "all" ? "" : value })}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="All tags" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All tags</SelectItem>
+            {tags.map((tag) => (
+              <SelectItem key={tag.id} value={tag.id}>
+                {tag.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <input type="hidden" name="tagId" value={tagId} />
+      </div>
+      <div className="space-y-1">
         <Label>Account</Label>
         <Select
           value={status || "all"}
@@ -143,7 +168,7 @@ export function StudentFilters({ subjects, grades }: StudentFiltersProps) {
         </Select>
         <input type="hidden" name="feeStatus" value={feeStatus} />
       </div>
-      <div className="flex items-end gap-2 lg:col-span-6">
+      <div className="flex items-end gap-2 lg:col-span-7">
         <Button type="submit" disabled={pending}>
           {pending ? "Applying..." : "Apply filters"}
         </Button>

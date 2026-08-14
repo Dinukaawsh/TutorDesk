@@ -2,6 +2,7 @@
 import { FeeStatus } from "@prisma/client";
 import { listStudents } from "@/actions/student.actions";
 import { listSubjects } from "@/actions/subject.actions";
+import { listStudentTags } from "@/actions/tag.actions";
 import { PageHeader } from "@/components/layout/page-header";
 import { StudentsPageClient } from "@/components/students/students-page-client";
 import { formatFeeSummary, getFeePaymentLabelKey } from "@/lib/fees";
@@ -22,6 +23,7 @@ export default async function TeacherStudentsPage({ searchParams }: PageProps) {
   const q = param(params.q);
   const grade = param(params.grade);
   const subjectId = param(params.subjectId);
+  const tagId = param(params.tagId);
   const status = param(params.status) as "enabled" | "disabled" | undefined;
   const feeStatusRaw = param(params.feeStatus);
   const feeStatus =
@@ -29,18 +31,27 @@ export default async function TeacherStudentsPage({ searchParams }: PageProps) {
       ? (feeStatusRaw as FeeStatus)
       : undefined;
 
-  const [subjectsRows, studentsRows] = await Promise.all([
+  const [subjectsRows, studentsRows, tagRows] = await Promise.all([
     listSubjects(),
     listStudents({
       q,
       grade,
       subjectId,
+      tagId,
       status: status === "enabled" || status === "disabled" ? status : undefined,
       feeStatus,
     }),
+    listStudentTags(),
   ]);
 
   const subjects = subjectsRows.map((s) => ({ id: s.id, name: s.name }));
+  const tags = tagRows.map((tag) => ({ id: tag.id, name: tag.name, color: tag.color }));
+  const tagStats = tagRows.map((tag) => ({
+    id: tag.id,
+    name: tag.name,
+    color: tag.color,
+    count: tag._count.assignments,
+  }));
   const grades = [
     ...new Set(
       studentsRows
@@ -62,6 +73,11 @@ export default async function TeacherStudentsPage({ searchParams }: PageProps) {
       id: e.subject.id,
       name: e.subject.name,
     })),
+    tags: s.tagAssignments.map((row) => ({
+      id: row.tag.id,
+      name: row.tag.name,
+      color: row.tag.color,
+    })),
     feeSummary: formatFeeSummary(s.feeRecords),
     feePaymentLabelKey: getFeePaymentLabelKey(s.feeRecords),
     form: {
@@ -76,6 +92,7 @@ export default async function TeacherStudentsPage({ searchParams }: PageProps) {
       whatsapp: s.whatsapp,
       avatarUrl: s.avatarUrl,
       subjectIds: s.enrollments.map((e) => e.subjectId),
+      tagIds: s.tagAssignments.map((row) => row.tagId),
     },
   }));
 
@@ -86,9 +103,14 @@ export default async function TeacherStudentsPage({ searchParams }: PageProps) {
         description="Manage student profiles, enrollments, and account access"
       />
       <Suspense fallback={<p className="text-sm text-muted-foreground">Loading filters...</p>}>
-        <StudentsPageClient students={students} subjects={subjects} grades={grades} />
+        <StudentsPageClient
+          students={students}
+          subjects={subjects}
+          grades={grades}
+          tags={tags}
+          tagStats={tagStats}
+        />
       </Suspense>
     </>
   );
 }
-

@@ -1,5 +1,5 @@
 ﻿import type { Announcement, AnnouncementTarget } from "@prisma/client";
-import { FiEdit2 } from "react-icons/fi";
+import { FiEdit2, FiTrash2 } from "react-icons/fi";
 import { IconButton } from "@/components/modals/icon-button";
 import { formatDateTime } from "@/lib/utils";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -26,9 +26,10 @@ function audienceLabel(row: AnnouncementWithSubject) {
 type AnnouncementListProps = {
   announcements: AnnouncementWithSubject[];
   onEdit?: (announcement: AnnouncementWithSubject) => void;
+  onDelete?: (announcement: AnnouncementWithSubject) => void;
 };
 
-export function AnnouncementList({ announcements, onEdit }: AnnouncementListProps) {
+export function AnnouncementList({ announcements, onEdit, onDelete }: AnnouncementListProps) {
   if (announcements.length === 0) {
     return <p className="text-sm text-muted-foreground">No announcements yet.</p>;
   }
@@ -48,13 +49,23 @@ export function AnnouncementList({ announcements, onEdit }: AnnouncementListProp
             <StatusBadge label={audienceLabel(item)} tone="muted" />
           </div>
           <p className="mt-3 whitespace-pre-wrap text-sm text-muted-foreground">{item.body}</p>
-          {onEdit ? (
-            <div className="mt-3">
-              <IconButton
-                labelKey="action.edit"
-                icon={<FiEdit2 className="h-4 w-4" />}
-                onClick={() => onEdit(item)}
-              />
+          {onEdit || onDelete ? (
+            <div className="mt-3 flex gap-1">
+              {onEdit ? (
+                <IconButton
+                  labelKey="action.edit"
+                  icon={<FiEdit2 className="h-4 w-4" />}
+                  onClick={() => onEdit(item)}
+                />
+              ) : null}
+              {onDelete ? (
+                <IconButton
+                  labelKey="action.delete"
+                  variant="destructive"
+                  icon={<FiTrash2 className="h-4 w-4" />}
+                  onClick={() => onDelete(item)}
+                />
+              ) : null}
             </div>
           ) : null}
         </li>

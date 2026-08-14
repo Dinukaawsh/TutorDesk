@@ -43,3 +43,7 @@ export const updateAnnouncementSchema = createAnnouncementSchema.extend({
 });
 
 export type UpdateAnnouncementInput = z.infer<typeof updateAnnouncementSchema>;
+
+export const deleteAnnouncementSchema = z.object({
+  id: z.string().min(1, "Invalid announcement"),
+});
