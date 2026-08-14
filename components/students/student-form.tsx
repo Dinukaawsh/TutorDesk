@@ -4,6 +4,7 @@ import { useActionState, useEffect } from "react";
 import { createStudentAction, updateStudentAction } from "@/actions/student.actions";
 import type { ActionResult } from "@/actions/auth.actions";
 import { Button } from "@/components/ui/button";
+import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useActionToast } from "@/hooks/use-action-toast";
@@ -57,30 +58,30 @@ export function StudentForm({ subjects, tags, student, onSuccess, onCancel, form
     <form
       action={formAction}
       id={formId}
+      noValidate
       className="space-y-4"
     >
       <FormPendingReporter />
       {student ? <input type="hidden" name="id" value={student.id} /> : null}
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="student-name">Full name</Label>
-          <Input id="student-name" name="name" defaultValue={student?.name ?? ""} required />
-          {state.fieldErrors?.name?.[0] ? (
-            <p className="text-sm text-black/70">{state.fieldErrors.name[0]}</p>
-          ) : null}
+          <Label htmlFor="student-name" required>
+            Full name
+          </Label>
+          <Input id="student-name" name="name" defaultValue={student?.name ?? ""} />
+          <FieldError message={state.fieldErrors?.name?.[0]} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="student-email">Email</Label>
+          <Label htmlFor="student-email" required>
+            Email
+          </Label>
           <Input
             id="student-email"
             name="email"
             type="email"
             defaultValue={student?.email ?? ""}
-            required
           />
-          {state.fieldErrors?.email?.[0] ? (
-            <p className="text-sm text-black/70">{state.fieldErrors.email[0]}</p>
-          ) : null}
+          <FieldError message={state.fieldErrors?.email?.[0]} />
         </div>
         <div className="space-y-2">
           <Label htmlFor="student-phone">Phone</Label>
@@ -88,11 +89,11 @@ export function StudentForm({ subjects, tags, student, onSuccess, onCancel, form
         </div>
         {!student ? (
           <div className="space-y-2 sm:col-span-2">
-            <Label htmlFor="student-password">Initial password</Label>
-            <Input id="student-password" name="password" type="password" required />
-            {state.fieldErrors?.password?.[0] ? (
-              <p className="text-sm text-black/70">{state.fieldErrors.password[0]}</p>
-            ) : null}
+            <Label htmlFor="student-password" required>
+              Initial password
+            </Label>
+            <Input id="student-password" name="password" type="password" />
+            <FieldError message={state.fieldErrors?.password?.[0]} />
           </div>
         ) : null}
         <div className="space-y-2">

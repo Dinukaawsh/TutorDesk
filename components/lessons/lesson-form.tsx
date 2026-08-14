@@ -5,6 +5,7 @@ import Link from "next/link";
 import { LessonType } from "@prisma/client";
 import type { ActionResult } from "@/actions/auth.actions";
 import { Button } from "@/components/ui/button";
+import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -52,16 +53,16 @@ export function LessonForm({
   );
 
   return (
-    <form action={formAction} className="mx-auto max-w-2xl space-y-4">
+    <form action={formAction} noValidate className="mx-auto max-w-2xl space-y-4">
       {lessonId ? <input type="hidden" name="lessonId" value={lessonId} /> : null}
       <input type="hidden" name="type" value={type} />
       <input type="hidden" name="subjectId" value={subjectId} />
       <div className="space-y-2">
-        <Label htmlFor="title">Title</Label>
-        <Input id="title" name="title" defaultValue={defaultValues?.title} required />
-        {state.fieldErrors?.title?.[0] ? (
-          <p className="text-sm text-muted-foreground">{state.fieldErrors.title[0]}</p>
-        ) : null}
+        <Label htmlFor="title" required>
+          Title
+        </Label>
+        <Input id="title" name="title" defaultValue={defaultValues?.title} />
+        <FieldError message={state.fieldErrors?.title?.[0]} />
       </div>
       <div className="space-y-2">
         <Label htmlFor="description">Description</Label>
@@ -69,7 +70,7 @@ export function LessonForm({
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label>Subject</Label>
+          <Label required>Subject</Label>
           <Select value={subjectId} onValueChange={setSubjectId}>
             <SelectTrigger>
               <SelectValue placeholder="Select subject" />
@@ -82,16 +83,14 @@ export function LessonForm({
               ))}
             </SelectContent>
           </Select>
-          {state.fieldErrors?.subjectId?.[0] ? (
-            <p className="text-sm text-muted-foreground">{state.fieldErrors.subjectId[0]}</p>
-          ) : null}
+          <FieldError message={state.fieldErrors?.subjectId?.[0]} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="grade">Grade</Label>
-          <Input id="grade" name="grade" defaultValue={defaultValues?.grade} required />
-          {state.fieldErrors?.grade?.[0] ? (
-            <p className="text-sm text-muted-foreground">{state.fieldErrors.grade[0]}</p>
-          ) : null}
+          <Label htmlFor="grade" required>
+            Grade
+          </Label>
+          <Input id="grade" name="grade" defaultValue={defaultValues?.grade} />
+          <FieldError message={state.fieldErrors?.grade?.[0]} />
         </div>
       </div>
       <div className="space-y-2">
@@ -108,18 +107,20 @@ export function LessonForm({
       </div>
       {type === LessonType.PDF ? (
         <div className="space-y-2">
-          <Label htmlFor="pdf">PDF file</Label>
+          <Label htmlFor="pdf" required={!lessonId}>
+            PDF file
+          </Label>
           <Input id="pdf" name="pdf" type="file" accept="application/pdf" />
           <p className="text-xs text-muted-foreground">
             {lessonId ? "Leave empty to keep the current PDF." : "Required for new PDF lessons (max 15 MB)."}
           </p>
-          {state.fieldErrors?.pdf?.[0] ? (
-            <p className="text-sm text-muted-foreground">{state.fieldErrors.pdf[0]}</p>
-          ) : null}
+          <FieldError message={state.fieldErrors?.pdf?.[0]} />
         </div>
       ) : (
         <div className="space-y-2">
-          <Label htmlFor="videoUrl">Video URL</Label>
+          <Label htmlFor="videoUrl" required>
+            Video URL
+          </Label>
           <Input
             id="videoUrl"
             name="videoUrl"
@@ -127,9 +128,7 @@ export function LessonForm({
             placeholder="YouTube, Vimeo, or direct link"
             defaultValue={defaultValues?.type === LessonType.VIDEO ? defaultValues.contentUrl : ""}
           />
-          {state.fieldErrors?.videoUrl?.[0] ? (
-            <p className="text-sm text-muted-foreground">{state.fieldErrors.videoUrl[0]}</p>
-          ) : null}
+          <FieldError message={state.fieldErrors?.videoUrl?.[0]} />
         </div>
       )}
       {state.message ? (

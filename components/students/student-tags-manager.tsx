@@ -11,6 +11,7 @@ import { ConfirmModal } from "@/components/modals/confirm-modal";
 import { FormModal } from "@/components/modals/form-modal";
 import { IconButton } from "@/components/modals/icon-button";
 import { ColorPicker } from "@/components/ui/color-picker";
+import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useActionToast } from "@/hooks/use-action-toast";
@@ -40,14 +41,14 @@ function CreateTagForm({ onSuccess }: { onSuccess: () => void }) {
   }, [state.success, onSuccess]);
 
   return (
-    <form id="create-tag-form" action={formAction} className="space-y-4">
+    <form id="create-tag-form" action={formAction} noValidate className="space-y-4">
       <FormPendingReporter />
       <div className="space-y-2">
-        <Label htmlFor="tag-name">Tag name</Label>
-        <Input id="tag-name" name="name" required placeholder="e.g. Scholarship, VIP" />
-        {state.fieldErrors?.name?.[0] ? (
-          <p className="text-sm text-muted-foreground">{state.fieldErrors.name[0]}</p>
-        ) : null}
+        <Label htmlFor="tag-name" required>
+          Tag name
+        </Label>
+        <Input id="tag-name" name="name" placeholder="e.g. Scholarship, VIP" />
+        <FieldError message={state.fieldErrors?.name?.[0]} />
       </div>
       <ColorPicker id="tag-color" label="Color" defaultValue="#2563eb" />
       {state.message && !state.success ? (

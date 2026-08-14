@@ -1,7 +1,7 @@
 ﻿import { z } from "zod";
 
 export const subjectSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
+  name: z.string().trim().min(1, "Name is required").min(2, "Name must be at least 2 characters"),
   description: z.string().max(500).optional().or(z.literal("")),
   color: z
     .string()

@@ -19,6 +19,7 @@ export type FormSelectOption = {
 type FormSelectProps = {
   id?: string;
   label: string;
+  required?: boolean;
   name: string;
   defaultValue?: string;
   value?: string;
@@ -33,6 +34,7 @@ type FormSelectProps = {
 export function FormSelect({
   id,
   label,
+  required,
   name,
   defaultValue = "",
   value,
@@ -61,7 +63,9 @@ export function FormSelect({
 
   return (
     <div className={cn("space-y-2", className)}>
-      <Label htmlFor={id ?? name}>{label}</Label>
+      <Label htmlFor={id ?? name} required={required}>
+        {label}
+      </Label>
       <Select value={selectValue} onValueChange={handleChange}>
         <SelectTrigger id={id ?? name}>
           <SelectValue placeholder={placeholder} />

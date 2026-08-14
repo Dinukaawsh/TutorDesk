@@ -28,6 +28,7 @@ import { IconButton } from "@/components/modals/icon-button";
 import { ViewModal } from "@/components/modals/view-modal";
 import { StudentContactSection } from "@/components/students/student-contact-section";
 import { Checkbox } from "@/components/ui/checkbox";
+import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -93,15 +94,15 @@ function ResetPasswordDialog({
       onCancel={() => onOpenChange(false)}
     >
       {studentId ? (
-        <form id="reset-password-form" action={formAction} className="space-y-4">
+        <form id="reset-password-form" action={formAction} noValidate className="space-y-4">
           <FormPendingReporter />
           <input type="hidden" name="id" value={studentId} />
           <div className="space-y-2">
-            <Label htmlFor="new-password">New password</Label>
-            <Input id="new-password" name="password" type="password" required />
-            {state.fieldErrors?.password?.[0] ? (
-              <p className="text-sm text-black/70">{state.fieldErrors.password[0]}</p>
-            ) : null}
+            <Label htmlFor="new-password" required>
+              New password
+            </Label>
+            <Input id="new-password" name="password" type="password" />
+            <FieldError message={state.fieldErrors?.password?.[0]} />
           </div>
           {state.message && !state.success ? (
             <p className="text-sm">{state.message}</p>

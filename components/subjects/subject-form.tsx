@@ -4,8 +4,9 @@ import { useActionState, useEffect } from "react";
 import { createSubjectAction, updateSubjectAction } from "@/actions/subject.actions";
 import type { ActionResult } from "@/actions/auth.actions";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { ColorPicker } from "@/components/ui/color-picker";
+import { FieldError } from "@/components/ui/field-error";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useActionToast } from "@/hooks/use-action-toast";
@@ -39,20 +40,19 @@ export function SubjectForm({ subject, onSuccess, onCancel, formId, hideActions 
   const showActions = !formId && !hideActions;
 
   return (
-    <form action={formAction} id={formId} className="space-y-4">
+    <form action={formAction} id={formId} noValidate className="space-y-4">
       <FormPendingReporter />
       {subject ? <input type="hidden" name="id" value={subject.id} /> : null}
       <div className="space-y-2">
-        <Label htmlFor="subject-name">Name</Label>
+        <Label htmlFor="subject-name" required>
+          Name
+        </Label>
         <Input
           id="subject-name"
           name="name"
           defaultValue={subject?.name ?? ""}
-          required
         />
-        {state.fieldErrors?.name?.[0] ? (
-          <p className="text-sm text-black/70">{state.fieldErrors.name[0]}</p>
-        ) : null}
+        <FieldError message={state.fieldErrors?.name?.[0]} />
       </div>
       <div className="space-y-2">
         <Label htmlFor="subject-description">Description</Label>
@@ -74,18 +74,14 @@ export function SubjectForm({ subject, onSuccess, onCancel, formId, hideActions 
           placeholder="Optional"
           defaultValue={subject?.monthlyFee ?? ""}
         />
-        {state.fieldErrors?.monthlyFee?.[0] ? (
-          <p className="text-sm text-black/70">{state.fieldErrors.monthlyFee[0]}</p>
-        ) : null}
+        <FieldError message={state.fieldErrors?.monthlyFee?.[0]} />
       </div>
       <ColorPicker
         id="subject-color"
         label="Color (hex)"
         defaultValue={subject?.color ?? "#2563eb"}
       />
-      {state.fieldErrors?.color?.[0] ? (
-        <p className="text-sm text-black/70">{state.fieldErrors.color[0]}</p>
-      ) : null}
+      <FieldError message={state.fieldErrors?.color?.[0]} />
       {state.message && !state.success ? (
         <p className="rounded-lg border border-border bg-muted px-3 py-2 text-sm">
           {state.message}

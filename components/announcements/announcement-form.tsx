@@ -1,12 +1,13 @@
 ﻿"use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { AnnouncementTarget } from "@prisma/client";
 import { saveAnnouncementAction } from "@/actions/announcement.actions";
 import type { ActionResult } from "@/actions/auth.actions";
 import { useReportFormModalPending } from "@/components/modals/form-modal-context";
 import { FormPendingReporter } from "@/components/modals/form-pending-reporter";
 import { Button } from "@/components/ui/button";
+import { FieldError } from "@/components/ui/field-error";
 import { FormSelect } from "@/components/ui/form-select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,6 +52,9 @@ export function AnnouncementForm({
   hideActions,
 }: AnnouncementFormProps) {
   const [state, formAction, pending] = useActionState(saveAnnouncementAction, initial);
+  const [targetType, setTargetType] = useState<AnnouncementTarget>(
+    announcement?.targetType ?? AnnouncementTarget.EVERYONE,
+  );
   useActionToast(state);
   useReportFormModalPending(pending);
 
@@ -62,35 +66,39 @@ export function AnnouncementForm({
 
   const showActions = !formId && !hideActions;
   const isEdit = Boolean(announcement);
+  const subjectRequired =
+    targetType === AnnouncementTarget.SUBJECT ||
+    targetType === AnnouncementTarget.SUBJECT_GRADE;
+  const gradeRequired =
+    targetType === AnnouncementTarget.GRADE ||
+    targetType === AnnouncementTarget.SUBJECT_GRADE;
 
   return (
-    <form action={formAction} id={formId} className="space-y-4">
+    <form action={formAction} id={formId} noValidate className="space-y-4">
       <FormPendingReporter />
       {announcement ? <input type="hidden" name="id" value={announcement.id} /> : null}
       <div className="space-y-2">
-        <Label htmlFor="announcement-title">Title</Label>
+        <Label htmlFor="announcement-title" required>
+          Title
+        </Label>
         <Input
           id="announcement-title"
           name="title"
           defaultValue={announcement?.title ?? ""}
-          required
         />
-        {state.fieldErrors?.title?.[0] ? (
-          <p className="text-sm text-muted-foreground">{state.fieldErrors.title[0]}</p>
-        ) : null}
+        <FieldError message={state.fieldErrors?.title?.[0]} />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="announcement-body">Message</Label>
+        <Label htmlFor="announcement-body" required>
+          Message
+        </Label>
         <Textarea
           id="announcement-body"
           name="body"
           rows={5}
           defaultValue={announcement?.body ?? ""}
-          required
         />
-        {state.fieldErrors?.body?.[0] ? (
-          <p className="text-sm text-muted-foreground">{state.fieldErrors.body[0]}</p>
-        ) : null}
+        <FieldError message={state.fieldErrors?.body?.[0]} />
       </div>
       <FormSelect
         id="announcement-target"
@@ -98,33 +106,32 @@ export function AnnouncementForm({
         name="targetType"
         defaultValue={announcement?.targetType ?? AnnouncementTarget.EVERYONE}
         options={TARGET_OPTIONS}
+        onValueChange={(value) => setTargetType(value as AnnouncementTarget)}
       />
       <FormSelect
         id="announcement-subject"
         label="Subject (if applicable)"
         name="subjectId"
+        required={subjectRequired}
         allowEmpty
         emptyLabel="Select subject"
         placeholder="Select subject"
         defaultValue={announcement?.subjectId ?? ""}
         options={subjects.map((s) => ({ value: s.id, label: s.name }))}
       />
-      {state.fieldErrors?.subjectId?.[0] ? (
-        <p className="text-sm text-muted-foreground">{state.fieldErrors.subjectId[0]}</p>
-      ) : null}
+      <FieldError message={state.fieldErrors?.subjectId?.[0]} />
       <FormSelect
         id="announcement-grade"
         label="Grade (if applicable)"
         name="grade"
+        required={gradeRequired}
         allowEmpty
         emptyLabel="Select grade"
         placeholder="Select grade"
         defaultValue={announcement?.grade ?? ""}
         options={grades.map((grade) => ({ value: grade, label: `Grade ${grade}` }))}
       />
-      {state.fieldErrors?.grade?.[0] ? (
-        <p className="text-sm text-muted-foreground">{state.fieldErrors.grade[0]}</p>
-      ) : null}
+      <FieldError message={state.fieldErrors?.grade?.[0]} />
       {state.message && !state.success ? <p className="text-sm">{state.message}</p> : null}
       {showActions ? (
         <Button type="submit" className="rounded-[4px]" disabled={pending}>

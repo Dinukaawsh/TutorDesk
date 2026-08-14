@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { updateTeacherProfileAction } from "@/actions/settings.actions";
 import type { ActionResult } from "@/actions/auth.actions";
 import { Button } from "@/components/ui/button";
+import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -39,7 +40,7 @@ export function TeacherSettingsForm({ teacher }: TeacherSettingsFormProps) {
   useActionToast(state);
 
   return (
-    <form action={formAction} className="space-y-6">
+    <form action={formAction} noValidate className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
         <div className="shrink-0">
           {teacher.avatarUrl ? (
@@ -62,24 +63,23 @@ export function TeacherSettingsForm({ teacher }: TeacherSettingsFormProps) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="teacher-name">Display name</Label>
-          <Input id="teacher-name" name="name" defaultValue={teacher.name} required />
-          {state.fieldErrors?.name?.[0] ? (
-            <p className="text-sm text-black/70">{state.fieldErrors.name[0]}</p>
-          ) : null}
+          <Label htmlFor="teacher-name" required>
+            Display name
+          </Label>
+          <Input id="teacher-name" name="name" defaultValue={teacher.name} />
+          <FieldError message={state.fieldErrors?.name?.[0]} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="teacher-email">Email</Label>
+          <Label htmlFor="teacher-email" required>
+            Email
+          </Label>
           <Input
             id="teacher-email"
             name="email"
             type="email"
             defaultValue={teacher.email}
-            required
           />
-          {state.fieldErrors?.email?.[0] ? (
-            <p className="text-sm text-black/70">{state.fieldErrors.email[0]}</p>
-          ) : null}
+          <FieldError message={state.fieldErrors?.email?.[0]} />
         </div>
         <div className="space-y-2">
           <Label htmlFor="teacher-whatsapp">WhatsApp</Label>

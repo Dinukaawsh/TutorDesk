@@ -5,6 +5,7 @@ import { submitAssignmentAction } from "@/actions/assignment.actions";
 import type { ActionResult } from "@/actions/auth.actions";
 import { FilePreviewModal } from "@/components/modals/file-preview-modal";
 import { Button } from "@/components/ui/button";
+import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -58,17 +59,18 @@ export function SubmissionUpload({ assignmentId, canSubmit, helperText }: Submis
 
   return (
     <>
-      <form action={formAction} className="space-y-3 rounded-lg border border-border bg-white/80 p-4">
+      <form action={formAction} noValidate className="space-y-3 rounded-lg border border-border bg-white/80 p-4">
         <input type="hidden" name="assignmentId" value={assignmentId} />
         <div className="space-y-2">
-          <Label htmlFor="files">Upload homework (photo or PDF)</Label>
+          <Label htmlFor="files" required>
+            Upload homework (photo or PDF)
+          </Label>
           <Input
             id="files"
             name="files"
             type="file"
             accept="application/pdf,image/*"
             multiple
-            required
             onChange={handleFilesChange}
           />
           {selectedFiles.length > 0 ? (
@@ -81,9 +83,7 @@ export function SubmissionUpload({ assignmentId, canSubmit, helperText }: Submis
               </Button>
             </div>
           ) : null}
-          {state.fieldErrors?.files?.[0] ? (
-            <p className="text-sm text-muted-foreground">{state.fieldErrors.files[0]}</p>
-          ) : null}
+          <FieldError message={state.fieldErrors?.files?.[0]} />
         </div>
         {state.message ? <p className="text-sm text-muted-foreground">{state.message}</p> : null}
         <Button type="submit" disabled={pending || selectedFiles.length === 0}>

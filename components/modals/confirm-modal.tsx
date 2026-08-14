@@ -5,6 +5,7 @@ import { useActionState, useEffect, useState } from "react";
 import type { ActionResult } from "@/actions/auth.actions";
 import { AppModal } from "@/components/ui/app-modal";
 import { Button } from "@/components/ui/button";
+import { FieldError } from "@/components/ui/field-error";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -127,17 +128,18 @@ function ConfirmModalFormBody({
 
   return (
     <AppModal open={open} onOpenChange={onOpenChange} title={title} footer={footer}>
-      <form id={formId} action={action} className="space-y-4">
+      <form id={formId} action={action} noValidate className="space-y-4">
         {bodyText ? <p className="text-sm text-foreground">{bodyText}</p> : null}
         {noteField ? (
           <div className="space-y-2">
-            <Label htmlFor={`confirm-note-${noteField.name}`}>{noteField.label}</Label>
+            <Label htmlFor={`confirm-note-${noteField.name}`} required={noteField.required}>
+              {noteField.label}
+            </Label>
             {noteField.multiline !== false ? (
               <Textarea
                 id={`confirm-note-${noteField.name}`}
                 name={noteField.name}
                 rows={noteField.rows ?? 3}
-                required={noteField.required}
                 placeholder={noteField.placeholder}
                 disabled={pending}
               />
@@ -145,14 +147,11 @@ function ConfirmModalFormBody({
               <Input
                 id={`confirm-note-${noteField.name}`}
                 name={noteField.name}
-                required={noteField.required}
                 placeholder={noteField.placeholder}
                 disabled={pending}
               />
             )}
-            {state.fieldErrors?.[noteField.name]?.[0] ? (
-              <p className="text-sm text-muted-foreground">{state.fieldErrors[noteField.name][0]}</p>
-            ) : null}
+            <FieldError message={state.fieldErrors?.[noteField.name]?.[0]} />
           </div>
         ) : null}
         {children}
@@ -179,10 +178,12 @@ export function ConfirmModal(props: ConfirmModalProps) {
 
   const [reason, setReason] = useState("");
   const [formSession, setFormSession] = useState(0);
+  const [reasonError, setReasonError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) {
       setReason("");
+      setReasonError(null);
       return;
     }
     if (isFormProps(props)) {
@@ -198,9 +199,14 @@ export function ConfirmModal(props: ConfirmModalProps) {
     : props.loading ?? props.pending ?? false;
 
   async function handleCallbackConfirm() {
-    if (isFormProps(props) || reasonInvalid || pending) {
+    if (isFormProps(props) || pending) {
       return;
     }
+    if (reasonInvalid) {
+      setReasonError("Reason is required");
+      return;
+    }
+    setReasonError(null);
     await props.onConfirm(showReasonField ? reason.trim() : undefined);
   }
 
@@ -241,7 +247,7 @@ export function ConfirmModal(props: ConfirmModalProps) {
       type="button"
       className="w-full"
       variant={confirmVariant}
-      disabled={pending || reasonInvalid}
+      disabled={pending}
       onClick={() => void handleCallbackConfirm()}
     >
       <ModalActionButtonContent pending={pending} label={confirmLabel} pendingLabel="Please wait..." />
@@ -254,15 +260,22 @@ export function ConfirmModal(props: ConfirmModalProps) {
         {bodyText ? <p className="text-sm text-foreground">{bodyText}</p> : null}
         {showReasonField ? (
           <div className="space-y-2">
-            <Label htmlFor="confirm-modal-reason">{props.reasonLabel ?? "Reason"}</Label>
+            <Label htmlFor="confirm-modal-reason" required={props.reasonRequired}>
+              {props.reasonLabel ?? "Reason"}
+            </Label>
             <Textarea
               id="confirm-modal-reason"
               value={reason}
-              onChange={(event) => setReason(event.target.value)}
+              onChange={(event) => {
+                setReason(event.target.value);
+                if (reasonError) {
+                  setReasonError(null);
+                }
+              }}
               rows={3}
-              required={props.reasonRequired}
               disabled={pending}
             />
+            <FieldError message={reasonError} />
           </div>
         ) : null}
       </div>

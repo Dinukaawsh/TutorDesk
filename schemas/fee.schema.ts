@@ -8,7 +8,7 @@ export const submitFeeProofSchema = z.object({
 
 export const rejectFeeSchema = z.object({
   feeRecordId: z.string().min(1),
-  teacherNote: z.string().min(1, "Add a note for the student").max(500),
+  teacherNote: z.string().trim().min(1, "Note is required").max(500),
 });
 
 export const manualMarkPaidSchema = z.object({
@@ -28,7 +28,7 @@ export const bulkApproveFeesSchema = z.object({
 
 export const bulkRejectFeesSchema = z.object({
   feeRecordIds: z.array(z.string().min(1)).min(1, "Select at least one fee"),
-  teacherNote: z.string().min(1, "Add a note for the student").max(500),
+  teacherNote: z.string().trim().min(1, "Note is required").max(500),
 });
 
 export type FeeListFilters = {

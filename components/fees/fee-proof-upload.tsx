@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { submitFeeProofAction } from "@/actions/fee.actions";
 import type { ActionResult } from "@/actions/auth.actions";
 import { Button } from "@/components/ui/button";
+import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,22 +22,22 @@ export function FeeProofUpload({ feeRecordId, disabled }: FeeProofUploadProps) {
   return (
     <form
       action={formAction}
+      noValidate
       className="mt-3 space-y-3 rounded-lg border border-dashed border-border bg-white/60 p-3"
     >
       <input type="hidden" name="feeRecordId" value={feeRecordId} />
       <div className="space-y-1">
-        <Label htmlFor={`proof-${feeRecordId}`}>Upload proof (photo or PDF)</Label>
+        <Label htmlFor={`proof-${feeRecordId}`} required>
+          Upload proof (photo or PDF)
+        </Label>
         <Input
           id={`proof-${feeRecordId}`}
           name="proof"
           type="file"
           accept="application/pdf,image/*"
-          required
           disabled={disabled || pending}
         />
-        {state.fieldErrors?.proof?.[0] ? (
-          <p className="text-sm text-muted-foreground">{state.fieldErrors.proof[0]}</p>
-        ) : null}
+        <FieldError message={state.fieldErrors?.proof?.[0]} />
       </div>
       <Textarea
         name="studentNote"

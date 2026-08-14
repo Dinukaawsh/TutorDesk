@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AssignmentTarget } from "@prisma/client";
 import type { ActionResult } from "@/actions/auth.actions";
 import { Button } from "@/components/ui/button";
+import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -37,25 +38,25 @@ export function AssignmentForm({ action, subjects, students }: AssignmentFormPro
   const [individualStudentId, setIndividualStudentId] = useState(students[0]?.id ?? "");
 
   return (
-    <form action={formAction} className="mx-auto max-w-2xl space-y-4">
+    <form action={formAction} noValidate className="mx-auto max-w-2xl space-y-4">
       <input type="hidden" name="targetType" value={targetType} />
       <input type="hidden" name="subjectId" value={subjectId} />
       {targetType === AssignmentTarget.INDIVIDUAL ? (
         <input type="hidden" name="individualStudentId" value={individualStudentId} />
       ) : null}
       <div className="space-y-2">
-        <Label htmlFor="title">Title</Label>
-        <Input id="title" name="title" required />
-        {state.fieldErrors?.title?.[0] ? (
-          <p className="text-sm text-muted-foreground">{state.fieldErrors.title[0]}</p>
-        ) : null}
+        <Label htmlFor="title" required>
+          Title
+        </Label>
+        <Input id="title" name="title" />
+        <FieldError message={state.fieldErrors?.title?.[0]} />
       </div>
       <div className="space-y-2">
         <Label htmlFor="instructions">Instructions</Label>
         <Textarea id="instructions" name="instructions" rows={4} />
       </div>
       <div className="space-y-2">
-        <Label>Subject</Label>
+        <Label required>Subject</Label>
         <Select value={subjectId} onValueChange={setSubjectId}>
           <SelectTrigger>
             <SelectValue placeholder="Select subject" />
@@ -68,6 +69,7 @@ export function AssignmentForm({ action, subjects, students }: AssignmentFormPro
             ))}
           </SelectContent>
         </Select>
+        <FieldError message={state.fieldErrors?.subjectId?.[0]} />
       </div>
       <div className="space-y-2">
         <Label>Target</Label>
@@ -86,15 +88,15 @@ export function AssignmentForm({ action, subjects, students }: AssignmentFormPro
       </div>
       {targetType === AssignmentTarget.GRADE ? (
         <div className="space-y-2">
-          <Label htmlFor="grade">Grade</Label>
+          <Label htmlFor="grade" required>
+            Grade
+          </Label>
           <Input id="grade" name="grade" placeholder="e.g. 10" />
-          {state.fieldErrors?.grade?.[0] ? (
-            <p className="text-sm text-muted-foreground">{state.fieldErrors.grade[0]}</p>
-          ) : null}
+          <FieldError message={state.fieldErrors?.grade?.[0]} />
         </div>
       ) : (
         <div className="space-y-2">
-          <Label>Student</Label>
+          <Label required>Student</Label>
           <Select value={individualStudentId} onValueChange={setIndividualStudentId}>
             <SelectTrigger>
               <SelectValue placeholder="Select student" />
@@ -108,17 +110,15 @@ export function AssignmentForm({ action, subjects, students }: AssignmentFormPro
               ))}
             </SelectContent>
           </Select>
-          {state.fieldErrors?.individualStudentId?.[0] ? (
-            <p className="text-sm text-muted-foreground">{state.fieldErrors.individualStudentId[0]}</p>
-          ) : null}
+          <FieldError message={state.fieldErrors?.individualStudentId?.[0]} />
         </div>
       )}
       <div className="space-y-2">
-        <Label htmlFor="deadline">Deadline</Label>
-        <Input id="deadline" name="deadline" type="datetime-local" required />
-        {state.fieldErrors?.deadline?.[0] ? (
-          <p className="text-sm text-muted-foreground">{state.fieldErrors.deadline[0]}</p>
-        ) : null}
+        <Label htmlFor="deadline" required>
+          Deadline
+        </Label>
+        <Input id="deadline" name="deadline" type="datetime-local" />
+        <FieldError message={state.fieldErrors?.deadline?.[0]} />
       </div>
       <div className="space-y-2">
         <Label htmlFor="attachment">Attachment (optional)</Label>

@@ -9,6 +9,7 @@ import {
 import type { ActionResult } from "@/actions/auth.actions";
 import { ConfirmModal } from "@/components/modals/confirm-modal";
 import { Button } from "@/components/ui/button";
+import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -63,12 +64,14 @@ export function GradingPanel({
 
   return (
     <div className="space-y-3">
-      <form action={formAction} className="space-y-3 rounded-lg border border-border bg-white/80 p-4">
+      <form action={formAction} noValidate className="space-y-3 rounded-lg border border-border bg-white/80 p-4">
         <input type="hidden" name="submissionId" value={submissionId} />
         <input type="hidden" name="status" value={status} />
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor={`marks-${submissionId}`}>Marks (0–100)</Label>
+            <Label htmlFor={`marks-${submissionId}`} required>
+              Marks (0–100)
+            </Label>
             <Input
               id={`marks-${submissionId}`}
               name="marks"
@@ -76,11 +79,8 @@ export function GradingPanel({
               min={0}
               max={100}
               defaultValue={defaultMarks ?? ""}
-              required
             />
-            {state.fieldErrors?.marks?.[0] ? (
-              <p className="text-sm text-muted-foreground">{state.fieldErrors.marks[0]}</p>
-            ) : null}
+            <FieldError message={state.fieldErrors?.marks?.[0]} />
           </div>
           <div className="space-y-2">
             <Label>Result</Label>
@@ -97,17 +97,16 @@ export function GradingPanel({
         </div>
         {status === SubmissionStatus.FAILED ? (
           <div className="space-y-2">
-            <Label htmlFor={`resubmit-${submissionId}`}>Resubmit deadline</Label>
+            <Label htmlFor={`resubmit-${submissionId}`} required>
+              Resubmit deadline
+            </Label>
             <Input
               id={`resubmit-${submissionId}`}
               name="resubmitDeadline"
               type="datetime-local"
               defaultValue={toDateTimeLocalValue(defaultResubmitDeadline)}
-              required
             />
-            {state.fieldErrors?.resubmitDeadline?.[0] ? (
-              <p className="text-sm text-muted-foreground">{state.fieldErrors.resubmitDeadline[0]}</p>
-            ) : null}
+            <FieldError message={state.fieldErrors?.resubmitDeadline?.[0]} />
           </div>
         ) : null}
         <div className="space-y-2">
@@ -141,12 +140,13 @@ export function GradingPanel({
           >
             <input type="hidden" name="submissionId" value={submissionId} />
             <div className="space-y-2">
-              <Label htmlFor={`reopen-deadline-${submissionId}`}>Resubmit deadline</Label>
+              <Label htmlFor={`reopen-deadline-${submissionId}`} required>
+                Resubmit deadline
+              </Label>
               <Input
                 id={`reopen-deadline-${submissionId}`}
                 name="resubmitDeadline"
                 type="datetime-local"
-                required
               />
             </div>
           </ConfirmModal>

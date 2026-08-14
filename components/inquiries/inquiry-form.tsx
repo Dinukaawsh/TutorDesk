@@ -7,6 +7,7 @@ import {
 } from "@/actions/inquiry.actions";
 import type { ActionResult } from "@/actions/auth.actions";
 import { Button } from "@/components/ui/button";
+import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -37,35 +38,33 @@ export function InquiryForm({ inquiry, onSuccess, onCancel }: InquiryFormProps) 
   }, [state.success, onSuccess]);
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form action={formAction} noValidate className="space-y-4">
       {inquiry ? <input type="hidden" name="id" value={inquiry.id} /> : null}
       {inquiry?.attachmentUrls.map((url) => (
         <input key={url} type="hidden" name="keepAttachmentUrls" value={url} />
       ))}
       <div className="space-y-2">
-        <Label htmlFor="inquiry-title">Title</Label>
+        <Label htmlFor="inquiry-title" required>
+          Title
+        </Label>
         <Input
           id="inquiry-title"
           name="title"
-          required
           defaultValue={inquiry?.title ?? ""}
         />
-        {state.fieldErrors?.title?.[0] ? (
-          <p className="text-sm text-muted-foreground">{state.fieldErrors.title[0]}</p>
-        ) : null}
+        <FieldError message={state.fieldErrors?.title?.[0]} />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="inquiry-body">Message</Label>
+        <Label htmlFor="inquiry-body" required>
+          Message
+        </Label>
         <Textarea
           id="inquiry-body"
           name="body"
           rows={5}
-          required
           defaultValue={inquiry?.body ?? ""}
         />
-        {state.fieldErrors?.body?.[0] ? (
-          <p className="text-sm text-muted-foreground">{state.fieldErrors.body[0]}</p>
-        ) : null}
+        <FieldError message={state.fieldErrors?.body?.[0]} />
       </div>
       <div className="space-y-2">
         <Label htmlFor="inquiry-attachments">Attachments (optional)</Label>
