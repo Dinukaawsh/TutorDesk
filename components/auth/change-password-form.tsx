@@ -5,7 +5,7 @@ import { useActionToast } from "@/hooks/use-action-toast";
 import { changePasswordAction, type ActionResult } from "@/actions/auth.actions";
 import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field-error";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 
 const initialState: ActionResult = { success: false };
@@ -23,21 +23,21 @@ export function ChangePasswordForm() {
         <Label htmlFor="currentPassword" required>
           Current password
         </Label>
-        <Input id="currentPassword" name="currentPassword" type="password" />
+        <PasswordInput id="currentPassword" name="currentPassword" />
         <FieldError message={state.fieldErrors?.currentPassword?.[0]} />
       </div>
       <div className="space-y-2">
         <Label htmlFor="newPassword" required>
           New password
         </Label>
-        <Input id="newPassword" name="newPassword" type="password" />
+        <PasswordInput id="newPassword" name="newPassword" />
         <FieldError message={state.fieldErrors?.newPassword?.[0]} />
       </div>
       <div className="space-y-2">
         <Label htmlFor="confirmPassword" required>
           Confirm new password
         </Label>
-        <Input id="confirmPassword" name="confirmPassword" type="password" />
+        <PasswordInput id="confirmPassword" name="confirmPassword" />
         <FieldError message={state.fieldErrors?.confirmPassword?.[0]} />
       </div>
       {state.message ? (

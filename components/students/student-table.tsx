@@ -29,7 +29,7 @@ import { ViewModal } from "@/components/modals/view-modal";
 import { StudentContactSection } from "@/components/students/student-contact-section";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FieldError } from "@/components/ui/field-error";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Pagination, PAGINATION_PAGE_SIZE } from "@/components/ui/pagination";
@@ -101,7 +101,7 @@ function ResetPasswordDialog({
             <Label htmlFor="new-password" required>
               New password
             </Label>
-            <Input id="new-password" name="password" type="password" />
+            <PasswordInput id="new-password" name="password" />
             <FieldError message={state.fieldErrors?.password?.[0]} />
           </div>
           {state.message && !state.success ? (

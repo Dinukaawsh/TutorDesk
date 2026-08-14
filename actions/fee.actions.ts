@@ -227,7 +227,7 @@ export async function submitFeeProofAction(
   if (!(proof instanceof File) || proof.size === 0) {
     return {
       success: false,
-      fieldErrors: { proof: ["Upload a photo or PDF"] },
+      fieldErrors: { proof: ["Proof file is required"] },
     };
   }
 

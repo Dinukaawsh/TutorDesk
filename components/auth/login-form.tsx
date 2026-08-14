@@ -1,13 +1,14 @@
 "use client";
 
 import { useActionState } from "react";
-import { FiLock, FiMail } from "react-icons/fi";
+import { FiMail } from "react-icons/fi";
 import { useActionToast } from "@/hooks/use-action-toast";
 import { loginAction, type ActionResult } from "@/actions/auth.actions";
 import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Spinner } from "@/components/ui/spinner";
 
 const initialState: ActionResult = { success: false };
@@ -39,17 +40,13 @@ export function LoginForm() {
         <Label htmlFor="password" required>
           Password
         </Label>
-        <div className="relative">
-          <FiLock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            id="password"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            className="pl-9"
-            placeholder="Enter your password"
-          />
-        </div>
+        <PasswordInput
+          id="password"
+          name="password"
+          showLockIcon
+          autoComplete="current-password"
+          placeholder="Enter your password"
+        />
         <FieldError message={state.fieldErrors?.password?.[0]} />
       </div>
       {state.message && !state.success ? (

@@ -5,7 +5,7 @@ import { updateTeacherPasswordAction } from "@/actions/settings.actions";
 import type { ActionResult } from "@/actions/auth.actions";
 import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field-error";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { useActionToast } from "@/hooks/use-action-toast";
@@ -22,10 +22,9 @@ export function TeacherPasswordForm() {
         <Label htmlFor="teacher-current-password" required>
           Current password
         </Label>
-        <Input
+        <PasswordInput
           id="teacher-current-password"
           name="currentPassword"
-          type="password"
           autoComplete="current-password"
         />
         <FieldError message={state.fieldErrors?.currentPassword?.[0]} />
@@ -34,10 +33,9 @@ export function TeacherPasswordForm() {
         <Label htmlFor="teacher-new-password" required>
           New password
         </Label>
-        <Input
+        <PasswordInput
           id="teacher-new-password"
           name="newPassword"
-          type="password"
           autoComplete="new-password"
         />
         <FieldError message={state.fieldErrors?.newPassword?.[0]} />
@@ -46,10 +44,9 @@ export function TeacherPasswordForm() {
         <Label htmlFor="teacher-confirm-password" required>
           Confirm new password
         </Label>
-        <Input
+        <PasswordInput
           id="teacher-confirm-password"
           name="confirmPassword"
-          type="password"
           autoComplete="new-password"
         />
         <FieldError message={state.fieldErrors?.confirmPassword?.[0]} />

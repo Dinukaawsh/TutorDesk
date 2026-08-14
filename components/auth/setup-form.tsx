@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
 
 const initialState: ActionResult = { success: false };
 
@@ -41,14 +42,14 @@ export function SetupForm() {
         <Label htmlFor="password" required>
           Password
         </Label>
-        <Input id="password" name="password" type="password" />
+        <PasswordInput id="password" name="password" />
         <FieldError message={state.fieldErrors?.password?.[0]} />
       </div>
       <div className="space-y-2">
         <Label htmlFor="confirmPassword" required>
           Confirm password
         </Label>
-        <Input id="confirmPassword" name="confirmPassword" type="password" />
+        <PasswordInput id="confirmPassword" name="confirmPassword" />
         <FieldError message={state.fieldErrors?.confirmPassword?.[0]} />
       </div>
       {state.message ? (

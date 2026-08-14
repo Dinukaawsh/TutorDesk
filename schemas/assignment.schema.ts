@@ -36,7 +36,7 @@ export type AssignmentFormInput = z.infer<typeof assignmentFormSchema>;
 export const gradeSubmissionSchema = z
   .object({
     submissionId: z.string().min(1),
-    marks: z.coerce.number({ invalid_type_error: "Marks are required" }).int().min(0, "Marks must be at least 0").max(100, "Marks cannot exceed 100"),
+    marks: z.coerce.number().int("Marks are required").min(0, "Marks must be at least 0").max(100, "Marks cannot exceed 100"),
     status: z.enum([SubmissionStatus.PASSED, SubmissionStatus.FAILED]),
     feedback: z.string().optional(),
     resubmitDeadline: z.string().optional(),

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
 import { useActionToast } from "@/hooks/use-action-toast";
 import { useReportFormModalPending } from "@/components/modals/form-modal-context";
 import { FormPendingReporter } from "@/components/modals/form-pending-reporter";
@@ -92,7 +93,7 @@ export function StudentForm({ subjects, tags, student, onSuccess, onCancel, form
             <Label htmlFor="student-password" required>
               Initial password
             </Label>
-            <Input id="student-password" name="password" type="password" />
+            <PasswordInput id="student-password" name="password" />
             <FieldError message={state.fieldErrors?.password?.[0]} />
           </div>
         ) : null}
