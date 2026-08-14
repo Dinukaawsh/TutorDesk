@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+﻿import { redirect } from "next/navigation";
 import { Role } from "@prisma/client";
 import { auth } from "@/auth";
 import { AppHeader } from "@/components/layout/app-header";
@@ -19,16 +19,16 @@ export default async function TeacherLayout({
   const unreadCount = await getUnreadNotificationCount(session.user.id);
 
   return (
-    <div className="flex min-h-full flex-col">
+    <div className="flex h-screen flex-col overflow-hidden">
       <AppHeader
         title="Teacher"
         userName={session.user.name}
         userRole="teacher"
         unreadCount={unreadCount}
       />
-      <div className="flex flex-1">
+      <div className="flex min-h-0 flex-1">
         <AppSidebar items={teacherNavItems} />
-        <main className="flex-1 p-4 sm:p-6">{children}</main>
+        <main className="td-scrollbar min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
       </div>
     </div>
   );

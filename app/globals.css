@@ -48,14 +48,43 @@ body {
   font-family: var(--font-roboto), Roboto, system-ui, sans-serif;
 }
 
+.td-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(37, 99, 235, 0.45) transparent;
+}
+
+.td-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.td-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(37, 99, 235, 0.45);
+  border-radius: 4px;
+}
+
+.td-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@keyframes announcement-alert-blink-keyframes {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(37, 99, 235, 0);
+  }
+}
+
+.announcement-alert-blink {
+  animation: announcement-alert-blink-keyframes 1.2s ease-in-out infinite;
+}
+
 .app-modal-footer {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   width: 100%;
-  padding-top: 1rem;
-  margin-top: 0.25rem;
-  border-top: 1px solid var(--border);
 }
 
 .app-modal-footer-two {

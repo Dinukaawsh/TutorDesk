@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
 export type AppModalProps = {
@@ -32,20 +33,22 @@ export function AppModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={cn(
-          "max-w-[var(--modal-width)] gap-0 rounded-[var(--radius-md)] border border-border bg-card p-0 shadow-sm",
+          "flex max-h-[min(85vh,640px)] max-w-[var(--modal-width)] flex-col gap-0 overflow-hidden rounded-[var(--radius-md)] border border-border bg-card p-0 shadow-sm",
           size === "lg" && "max-w-[var(--modal-width-lg)]",
         )}
       >
-        <DialogHeader className="space-y-0 border-b border-border px-4 py-3">
+        <DialogHeader className="shrink-0 space-y-0 border-b border-border px-4 py-3">
           <DialogTitle className="text-base font-semibold leading-tight">
             {title}
           </DialogTitle>
         </DialogHeader>
-        <div className="px-4 py-4">{children}</div>
+        <ScrollArea className="td-scrollbar min-h-0 max-h-[50vh] flex-1">
+          <div className="px-4 py-4">{children}</div>
+        </ScrollArea>
         {footer ? (
           <div
             className={cn(
-              "app-modal-footer px-4 pb-4",
+              "app-modal-footer shrink-0 border-t border-border px-4 py-3",
               footerCount === 2 && "app-modal-footer-two",
             )}
           >

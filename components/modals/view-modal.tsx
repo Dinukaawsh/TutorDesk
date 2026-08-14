@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import * as React from "react";
 import { AppModal } from "@/components/ui/app-modal";
@@ -34,7 +34,7 @@ export function ViewModal({
 
   return (
     <AppModal open={open} onOpenChange={onOpenChange} title={title} size={modalSize} footer={resolvedFooter}>
-      <div className="max-h-[70vh] space-y-3 overflow-y-auto text-sm text-foreground">{children}</div>
+      <div className="space-y-3 text-sm text-foreground">{children}</div>
     </AppModal>
   );
 }
