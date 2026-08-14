@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getTeacherDashboard } from "@/actions/dashboard.actions";
 import { listStudentTags } from "@/actions/tag.actions";
 import { TeacherDashboardFilters } from "@/components/dashboard/teacher-dashboard-filters";
+import { DashboardBarChart, DashboardDonutChart } from "@/components/dashboard/dashboard-charts";
 import { TeacherStudentOverviewTable } from "@/components/dashboard/teacher-student-overview-table";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -97,6 +98,25 @@ export default async function TeacherDashboardPage({ searchParams }: PageProps) 
           title={t("dashboard.stat.assignmentsDueWeek")}
           value={data.stats.assignmentsDueThisWeek}
         />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card className="border-border bg-white/80 shadow-sm backdrop-blur">
+          <CardHeader>
+            <CardTitle className="text-base">Students by grade</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DashboardBarChart items={data.charts.studentsByGrade} emptyLabel="No students to chart yet." />
+          </CardContent>
+        </Card>
+        <Card className="border-border bg-white/80 shadow-sm backdrop-blur">
+          <CardHeader>
+            <CardTitle className="text-base">Fee status this month</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DashboardDonutChart items={data.charts.feeStatusBreakdown} emptyLabel="No fee records yet." />
+          </CardContent>
+        </Card>
       </div>
 
       <section className="space-y-3">

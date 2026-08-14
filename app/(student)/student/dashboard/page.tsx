@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { FiUpload } from "react-icons/fi";
 import { getStudentDashboard } from "@/actions/dashboard.actions";
 import { PageHeader } from "@/components/layout/page-header";
+import { DashboardDonutChart } from "@/components/dashboard/dashboard-charts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FeeStatusBadge, StatusBadge } from "@/components/ui/status-badge";
 import { StudentTagBadge } from "@/components/students/student-tag-badge";
@@ -78,6 +79,25 @@ export default async function StudentDashboardPage() {
           title={t("dashboard.stat.recentSubmissions")}
           value={data.stats.recentSubmissionsCount}
         />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card className="border-border bg-white/80 shadow-sm backdrop-blur">
+          <CardHeader>
+            <CardTitle className="text-base">Fee status by subject</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DashboardDonutChart items={data.charts.feeStatusBreakdown} emptyLabel="No enrolled subjects yet." />
+          </CardContent>
+        </Card>
+        <Card className="border-border bg-white/80 shadow-sm backdrop-blur">
+          <CardHeader>
+            <CardTitle className="text-base">Assignment progress</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DashboardDonutChart items={data.charts.assignmentProgress} emptyLabel="No assignments yet." />
+          </CardContent>
+        </Card>
       </div>
 
       <section className="space-y-3">

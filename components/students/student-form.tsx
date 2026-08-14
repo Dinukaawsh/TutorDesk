@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CheckboxField } from "@/components/ui/checkbox-field";
 import { PasswordInput } from "@/components/ui/password-input";
 import { useActionToast } from "@/hooks/use-action-toast";
 import { useReportFormModalPending } from "@/components/modals/form-modal-context";
@@ -126,24 +127,16 @@ export function StudentForm({ subjects, tags, student, onSuccess, onCancel, form
       <div className="space-y-2">
         <Label>Subject enrollments</Label>
         <div className="grid gap-2 sm:grid-cols-2">
-          {subjects.map((subject) => {
-            const checked = student?.subjectIds.includes(subject.id) ?? false;
-            return (
-              <label
-                key={subject.id}
-                className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm"
-              >
-                <input
-                  type="checkbox"
-                  name="subjectIds"
-                  value={subject.id}
-                  defaultChecked={checked}
-                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary/40"
-                />
-                {subject.name}
-              </label>
-            );
-          })}
+          {subjects.map((subject) => (
+            <CheckboxField
+              key={subject.id}
+              id={`student-subject-${subject.id}`}
+              name="subjectIds"
+              value={subject.id}
+              defaultChecked={student?.subjectIds.includes(subject.id) ?? false}
+              label={subject.name}
+            />
+          ))}
           {subjects.length === 0 ? (
             <p className="text-sm text-muted-foreground">Create subjects before enrolling students.</p>
           ) : null}
@@ -153,24 +146,16 @@ export function StudentForm({ subjects, tags, student, onSuccess, onCancel, form
       <div className="space-y-2">
         <Label>Tags</Label>
         <div className="grid gap-2 sm:grid-cols-2">
-          {tags.map((tag) => {
-            const checked = student?.tagIds.includes(tag.id) ?? false;
-            return (
-              <label
-                key={tag.id}
-                className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm"
-              >
-                <input
-                  type="checkbox"
-                  name="tagIds"
-                  value={tag.id}
-                  defaultChecked={checked}
-                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary/40"
-                />
-                {tag.name}
-              </label>
-            );
-          })}
+          {tags.map((tag) => (
+            <CheckboxField
+              key={tag.id}
+              id={`student-tag-${tag.id}`}
+              name="tagIds"
+              value={tag.id}
+              defaultChecked={student?.tagIds.includes(tag.id) ?? false}
+              label={tag.name}
+            />
+          ))}
           {tags.length === 0 ? (
             <p className="text-sm text-muted-foreground">Create tags above before assigning them.</p>
           ) : null}

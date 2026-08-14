@@ -38,7 +38,7 @@ export function StudentsPageClient({
       </div>
       <StudentTagsManager tags={tagStats} />
       <StudentFilters subjects={subjects} grades={grades} tags={tags} />
-      <StudentTable students={students} subjects={subjects} tags={tags} />
+      <StudentTable students={students} subjects={subjects} tags={tags} grades={grades} />
 
       <FormModal
         open={createOpen}

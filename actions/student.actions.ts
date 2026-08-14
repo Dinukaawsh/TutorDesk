@@ -15,8 +15,12 @@ import { prisma } from "@/lib/prisma";
 import { saveAvatarFile } from "@/lib/save-avatar";
 import { requireTeacherSession } from "@/lib/teacher-auth";
 import {
+  bulkAddSubjectsSchema,
+  bulkAddTagsSchema,
   bulkDisableSchema,
   bulkEnableSchema,
+  bulkRemoveTagsSchema,
+  bulkUpdateGradeSchema,
   createStudentSchema,
   disableStudentSchema,
   resetPasswordSchema,
@@ -26,6 +30,7 @@ import {
 
 function revalidateStudents() {
   revalidatePath("/teacher/students");
+  revalidatePath("/teacher/dashboard");
 }
 
 function parseSubjectIds(formData: FormData) {
@@ -86,6 +91,40 @@ async function syncEnrollments(studentId: string, subjectIds: string[]) {
   }
 
   await ensureFeeRecordsForEnrollments(studentId, toAdd);
+}
+
+async function addEnrollments(studentId: string, subjectIds: string[]) {
+  const uniqueIds = [...new Set(subjectIds)];
+  const existing = await prisma.enrollment.findMany({
+    where: { userId: studentId },
+    select: { subjectId: true },
+  });
+  const existingIds = new Set(existing.map((e) => e.subjectId));
+  const toAdd = uniqueIds.filter((id) => !existingIds.has(id));
+
+  for (const subjectId of toAdd) {
+    await prisma.enrollment.create({
+      data: { userId: studentId, subjectId },
+    });
+  }
+
+  await ensureFeeRecordsForEnrollments(studentId, toAdd);
+}
+
+async function addStudentTags(studentId: string, tagIds: string[]) {
+  const uniqueIds = [...new Set(tagIds)];
+  const existing = await prisma.studentTagAssignment.findMany({
+    where: { userId: studentId },
+    select: { tagId: true },
+  });
+  const existingIds = new Set(existing.map((row) => row.tagId));
+  const toAdd = uniqueIds.filter((id) => !existingIds.has(id));
+
+  for (const tagId of toAdd) {
+    await prisma.studentTagAssignment.create({
+      data: { userId: studentId, tagId },
+    });
+  }
 }
 
 async function syncStudentTags(studentId: string, tagIds: string[]) {
@@ -395,6 +434,126 @@ export async function bulkEnableStudentsAction(
 
   revalidateStudents();
   return { success: true, message: "Selected students enabled." };
+}
+
+export async function bulkUpdateGradeAction(
+  _prev: ActionResult | undefined,
+  formData: FormData,
+): Promise<ActionResult> {
+  const session = await requireTeacherSession();
+  if (!session) {
+    return { success: false, message: "Unauthorized." };
+  }
+
+  const parsed = bulkUpdateGradeSchema.safeParse({
+    ids: formData.getAll("ids").map(String),
+    grade: formData.get("grade"),
+  });
+  if (!parsed.success) {
+    return {
+      success: false,
+      fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
+      message: parsed.error.flatten().formErrors[0],
+    };
+  }
+
+  await prisma.user.updateMany({
+    where: { id: { in: parsed.data.ids }, role: Role.STUDENT },
+    data: { grade: parsed.data.grade },
+  });
+
+  revalidateStudents();
+  return { success: true, message: "Grade updated for selected students." };
+}
+
+export async function bulkAddTagsAction(
+  _prev: ActionResult | undefined,
+  formData: FormData,
+): Promise<ActionResult> {
+  const session = await requireTeacherSession();
+  if (!session) {
+    return { success: false, message: "Unauthorized." };
+  }
+
+  const parsed = bulkAddTagsSchema.safeParse({
+    ids: formData.getAll("ids").map(String),
+    tagIds: formData.getAll("tagIds").map(String),
+  });
+  if (!parsed.success) {
+    return {
+      success: false,
+      fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
+      message: parsed.error.flatten().formErrors[0],
+    };
+  }
+
+  for (const studentId of parsed.data.ids) {
+    await addStudentTags(studentId, parsed.data.tagIds);
+  }
+
+  revalidateStudents();
+  return { success: true, message: "Tags added to selected students." };
+}
+
+export async function bulkRemoveTagsAction(
+  _prev: ActionResult | undefined,
+  formData: FormData,
+): Promise<ActionResult> {
+  const session = await requireTeacherSession();
+  if (!session) {
+    return { success: false, message: "Unauthorized." };
+  }
+
+  const parsed = bulkRemoveTagsSchema.safeParse({
+    ids: formData.getAll("ids").map(String),
+    tagIds: formData.getAll("tagIds").map(String),
+  });
+  if (!parsed.success) {
+    return {
+      success: false,
+      fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
+      message: parsed.error.flatten().formErrors[0],
+    };
+  }
+
+  await prisma.studentTagAssignment.deleteMany({
+    where: {
+      userId: { in: parsed.data.ids },
+      tagId: { in: parsed.data.tagIds },
+    },
+  });
+
+  revalidateStudents();
+  return { success: true, message: "Tags removed from selected students." };
+}
+
+export async function bulkAddSubjectsAction(
+  _prev: ActionResult | undefined,
+  formData: FormData,
+): Promise<ActionResult> {
+  const session = await requireTeacherSession();
+  if (!session) {
+    return { success: false, message: "Unauthorized." };
+  }
+
+  const parsed = bulkAddSubjectsSchema.safeParse({
+    ids: formData.getAll("ids").map(String),
+    subjectIds: formData.getAll("subjectIds").map(String),
+  });
+  if (!parsed.success) {
+    return {
+      success: false,
+      fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
+      message: parsed.error.flatten().formErrors[0],
+    };
+  }
+
+  for (const studentId of parsed.data.ids) {
+    await addEnrollments(studentId, parsed.data.subjectIds);
+  }
+
+  revalidateStudents();
+  return { success: true, message: "Subjects added to selected students." };
 }
 
 export async function resetStudentPasswordAction(

@@ -22,6 +22,8 @@
 
   --modal-width: 480px;
   --modal-width-lg: 720px;
+  --modal-width-xl: 960px;
+  --modal-max-height-xl: min(92vh, 820px);
 }
 
 @theme inline {

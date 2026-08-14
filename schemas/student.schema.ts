@@ -46,6 +46,26 @@ export const bulkEnableSchema = z.object({
   ids: z.array(z.string().min(1)).min(1, "Select at least one student"),
 });
 
+export const bulkUpdateGradeSchema = z.object({
+  ids: z.array(z.string().min(1)).min(1, "Select at least one student"),
+  grade: z.string().trim().min(1, "Grade is required"),
+});
+
+export const bulkAddTagsSchema = z.object({
+  ids: z.array(z.string().min(1)).min(1, "Select at least one student"),
+  tagIds: z.array(z.string().min(1)).min(1, "Select at least one tag"),
+});
+
+export const bulkRemoveTagsSchema = z.object({
+  ids: z.array(z.string().min(1)).min(1, "Select at least one student"),
+  tagIds: z.array(z.string().min(1)).min(1, "Select at least one tag"),
+});
+
+export const bulkAddSubjectsSchema = z.object({
+  ids: z.array(z.string().min(1)).min(1, "Select at least one student"),
+  subjectIds: z.array(z.string().min(1)).min(1, "Select at least one subject"),
+});
+
 export const resetPasswordSchema = z.object({
   id: z.string().min(1),
   password: z.string().min(1, "Password is required").min(8, "Password must be at least 8 characters"),

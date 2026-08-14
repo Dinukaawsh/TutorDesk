@@ -57,6 +57,7 @@ type StudentTableProps = {
   students: StudentRow[];
   subjects: SubjectOption[];
   tags: TagOption[];
+  grades: string[];
 };
 
 const resetInitial: ActionResult = { success: false };
@@ -118,7 +119,7 @@ function ResetPasswordDialog({
   );
 }
 
-export function StudentTable({ students, subjects, tags }: StudentTableProps) {
+export function StudentTable({ students, subjects, tags, grades }: StudentTableProps) {
   const [page, setPage] = useState(1);
 
   useEffect(() => {
@@ -138,7 +139,7 @@ export function StudentTable({ students, subjects, tags }: StudentTableProps) {
   const [enableTarget, setEnableTarget] = useState<{ id: string; name: string } | null>(null);
   const [resetId, setResetId] = useState<string | null>(null);
 
-  const allIds = useMemo(() => pagedStudents.map((s) => s.id), [students]);
+  const allIds = useMemo(() => pagedStudents.map((s) => s.id), [pagedStudents]);
   const allSelected = pagedStudents.length > 0 && pagedStudents.every((s) => selected.has(s.id));
 
   function toggleAll(checked: boolean) {
@@ -267,7 +268,13 @@ export function StudentTable({ students, subjects, tags }: StudentTableProps) {
         </table>
       </div>
 
-      <BulkActionBar selectedIds={[...selected]} onClear={() => setSelected(new Set())} />
+      <BulkActionBar
+        selectedIds={[...selected]}
+        subjects={subjects}
+        tags={tags}
+        grades={grades}
+        onClear={() => setSelected(new Set())}
+      />
 
       <FormModal
         open={Boolean(editStudent)}

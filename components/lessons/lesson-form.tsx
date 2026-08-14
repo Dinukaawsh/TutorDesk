@@ -1,9 +1,11 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import Link from "next/link";
 import { LessonType } from "@prisma/client";
 import type { ActionResult } from "@/actions/auth.actions";
+import { FormPendingReporter } from "@/components/modals/form-pending-reporter";
+import { useReportFormModalPending } from "@/components/modals/form-modal-context";
 import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
@@ -16,6 +18,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useActionToast } from "@/hooks/use-action-toast";
+import { cn } from "@/lib/utils";
 
 type SubjectOption = { id: string; name: string };
 
@@ -34,6 +38,10 @@ type LessonFormProps = {
     grade: string;
     contentUrl: string;
   };
+  formId?: string;
+  hideActions?: boolean;
+  onSuccess?: () => void;
+  onCancel?: () => void;
 };
 
 const initialState: ActionResult = { success: false };
@@ -43,6 +51,10 @@ export function LessonForm({
   subjects,
   lessonId,
   defaultValues,
+  formId,
+  hideActions,
+  onSuccess,
+  onCancel,
 }: LessonFormProps) {
   const [state, formAction, pending] = useActionState(action, initialState);
   const [type, setType] = useState<LessonType>(
@@ -52,8 +64,25 @@ export function LessonForm({
     defaultValues?.subjectId ?? subjects[0]?.id ?? "",
   );
 
+  useActionToast(state);
+  useReportFormModalPending(pending);
+
+  useEffect(() => {
+    if (state.success) {
+      onSuccess?.();
+    }
+  }, [state.success, onSuccess]);
+
+  const showActions = !formId && !hideActions;
+
   return (
-    <form action={formAction} noValidate className="mx-auto max-w-2xl space-y-4">
+    <form
+      action={formAction}
+      id={formId}
+      noValidate
+      className={cn("space-y-4", !formId && "mx-auto max-w-2xl")}
+    >
+      <FormPendingReporter />
       {lessonId ? <input type="hidden" name="lessonId" value={lessonId} /> : null}
       <input type="hidden" name="type" value={type} />
       <input type="hidden" name="subjectId" value={subjectId} />
@@ -131,17 +160,25 @@ export function LessonForm({
           <FieldError message={state.fieldErrors?.videoUrl?.[0]} />
         </div>
       )}
-      {state.message ? (
+      {state.message && !state.success ? (
         <p className="rounded-lg border border-border bg-muted px-3 py-2 text-sm">{state.message}</p>
       ) : null}
-      <div className="flex gap-2">
-        <Button type="submit" disabled={pending}>
-          {pending ? "Saving..." : lessonId ? "Update lesson" : "Create lesson"}
-        </Button>
-        <Button type="button" variant="outline" asChild>
-          <Link href="/teacher/lessons">Cancel</Link>
-        </Button>
-      </div>
+      {showActions ? (
+        <div className="flex gap-2">
+          <Button type="submit" disabled={pending}>
+            {pending ? "Saving..." : lessonId ? "Update lesson" : "Create lesson"}
+          </Button>
+          {onCancel ? (
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+          ) : (
+            <Button type="button" variant="outline" asChild>
+              <Link href="/teacher/lessons">Cancel</Link>
+            </Button>
+          )}
+        </div>
+      ) : null}
     </form>
   );
 }

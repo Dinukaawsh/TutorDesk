@@ -72,6 +72,10 @@ export type TeacherDashboardData = {
     unpaidFees: number;
     assignmentsDueThisWeek: number;
   };
+  charts: {
+    studentsByGrade: { label: string; value: number }[];
+    feeStatusBreakdown: { label: string; value: number; color?: string }[];
+  };
   students: TeacherDashboardStudentRow[];
   subjects: { id: string; name: string }[];
   grades: string[];
@@ -143,6 +147,7 @@ export async function getTeacherDashboard(
     totalStudents,
     pendingFeeReviews,
     unpaidFees,
+    paidFees,
     assignmentsDueThisWeek,
     recentHomeworkRows,
     recentFeeProofRows,
@@ -179,6 +184,15 @@ export async function getTeacherDashboard(
         month,
         year,
         status: FeeStatus.UNPAID,
+        student: feeStudentWhere,
+        ...(filters.subjectId ? { subjectId: filters.subjectId } : {}),
+      },
+    }),
+    prisma.feeRecord.count({
+      where: {
+        month,
+        year,
+        status: FeeStatus.PAID,
         student: feeStudentWhere,
         ...(filters.subjectId ? { subjectId: filters.subjectId } : {}),
       },
@@ -246,6 +260,12 @@ export async function getTeacherDashboard(
     .filter((g): g is string => Boolean(g))
     .sort();
 
+  const gradeCounts = new Map<string, number>();
+  for (const student of studentsRaw) {
+    const label = student.grade?.trim() || "Unassigned";
+    gradeCounts.set(label, (gradeCounts.get(label) ?? 0) + 1);
+  }
+
   return {
     filters: { month, year },
     stats: {
@@ -253,6 +273,16 @@ export async function getTeacherDashboard(
       pendingFeeReviews,
       unpaidFees,
       assignmentsDueThisWeek,
+    },
+    charts: {
+      studentsByGrade: [...gradeCounts.entries()]
+        .map(([label, value]) => ({ label: label === "Unassigned" ? "No grade" : `Grade ${label}`, value }))
+        .sort((a, b) => a.label.localeCompare(b.label, undefined, { numeric: true })),
+      feeStatusBreakdown: [
+        { label: "Paid", value: paidFees, color: "#16a34a" },
+        { label: "In review", value: pendingFeeReviews, color: "#f59e0b" },
+        { label: "Unpaid", value: unpaidFees, color: "#ef4444" },
+      ],
     },
     students,
     subjects: subjectsRows,
@@ -281,6 +311,10 @@ export type StudentDashboardData = {
     pendingAssignments: number;
     dueWithinThreeDays: number;
     recentSubmissionsCount: number;
+  };
+  charts: {
+    feeStatusBreakdown: { label: string; value: number; color?: string }[];
+    assignmentProgress: { label: string; value: number; color?: string }[];
   };
   subjects: {
     id: string;
@@ -438,6 +472,37 @@ export async function getStudentDashboard(): Promise<StudentDashboardData | null
       pendingAssignments: pendingAssignments.length,
       dueWithinThreeDays: closingDeadlines.length,
       recentSubmissionsCount,
+    },
+    charts: {
+      feeStatusBreakdown: [
+        {
+          label: "Paid",
+          value: student.enrollments.filter((e) => feeBySubject.get(e.subjectId) === FeeStatus.PAID).length,
+          color: "#16a34a",
+        },
+        {
+          label: "In review",
+          value: student.enrollments.filter((e) => feeBySubject.get(e.subjectId) === FeeStatus.PENDING).length,
+          color: "#f59e0b",
+        },
+        {
+          label: "Unpaid",
+          value: student.enrollments.filter((e) => feeBySubject.get(e.subjectId) === FeeStatus.UNPAID).length,
+          color: "#ef4444",
+        },
+      ],
+      assignmentProgress: [
+        {
+          label: "Pending",
+          value: pendingAssignments.length,
+          color: "#f59e0b",
+        },
+        {
+          label: "Submitted",
+          value: Math.max(targetedAssignments.length - pendingAssignments.length, 0),
+          color: "#2563eb",
+        },
+      ],
     },
     subjects: student.enrollments.map((e) => ({
       id: e.subject.id,

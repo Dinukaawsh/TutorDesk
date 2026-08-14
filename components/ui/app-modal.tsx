@@ -37,7 +37,7 @@ export type AppModalProps = {
   title: string;
   children: React.ReactNode;
   footer?: React.ReactNode;
-  size?: "default" | "lg";
+  size?: "default" | "lg" | "xl";
 };
 
 export function AppModal({
@@ -57,6 +57,7 @@ export function AppModal({
         className={cn(
           "flex max-h-[min(90vh,680px)] max-w-[var(--modal-width)] flex-col gap-0 overflow-hidden rounded-[var(--radius-md)] border border-border bg-card p-0 shadow-sm",
           size === "lg" && "max-w-[var(--modal-width-lg)]",
+          size === "xl" && "max-h-[var(--modal-max-height-xl)] max-w-[var(--modal-width-xl)]",
         )}
       >
         <DialogHeader className="relative shrink-0 space-y-0 border-b border-border px-4 py-3 pr-10">

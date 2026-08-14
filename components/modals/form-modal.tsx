@@ -21,7 +21,7 @@ type FormModalProps = {
   loading?: boolean;
   saveDisabled?: boolean;
   formId?: string;
-  size?: "default" | "lg";
+  size?: "default" | "lg" | "xl";
 };
 
 function findChildFormId(node: React.ReactNode): string | undefined {
