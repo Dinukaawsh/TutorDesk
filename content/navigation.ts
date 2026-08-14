@@ -6,6 +6,8 @@ export const labels = {
   "nav.assignments": "Assignments",
   "nav.fees": "Fees",
   "nav.notifications": "Notifications",
+  "nav.announcements": "Announcements",
+  "nav.inquiries": "Inquiries",
   "nav.settings": "Settings",
   "table.paymentStatus": "Payment status",
   "table.accountStatus": "Account",
@@ -120,6 +122,8 @@ export const teacherNavItems: NavItem[] = [
   { href: "/teacher/lessons", labelKey: "nav.lessons" },
   { href: "/teacher/assignments", labelKey: "nav.assignments" },
   { href: "/teacher/fees", labelKey: "nav.fees" },
+  { href: "/teacher/announcements", labelKey: "nav.announcements" },
+  { href: "/teacher/inquiries", labelKey: "nav.inquiries" },
   { href: "/teacher/notifications", labelKey: "nav.notifications" },
   { href: "/teacher/settings", labelKey: "nav.settings" },
 ];
@@ -129,6 +133,8 @@ export const studentNavItems: NavItem[] = [
   { href: "/student/lessons", labelKey: "nav.lessons" },
   { href: "/student/assignments", labelKey: "nav.assignments" },
   { href: "/student/fees", labelKey: "nav.fees" },
+  { href: "/student/announcements", labelKey: "nav.announcements" },
+  { href: "/student/inquiries", labelKey: "nav.inquiries" },
   { href: "/student/notifications", labelKey: "nav.notifications" },
 ];
 

@@ -24,6 +24,7 @@ import { ConfirmModal } from "@/components/modals/confirm-modal";
 import { FormModal } from "@/components/modals/form-modal";
 import { IconButton } from "@/components/modals/icon-button";
 import { ViewModal } from "@/components/modals/view-modal";
+import { StudentContactSection } from "@/components/students/student-contact-section";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,6 +38,7 @@ export type StudentRow = {
   name: string;
   email: string;
   phone: string | null;
+  whatsapp: string | null;
   grade: string | null;
   isDisabled: boolean;
   avatarUrl: string | null;
@@ -295,6 +297,7 @@ export function StudentTable({ students, subjects }: StudentTableProps) {
                 <StatusBadge label={t(viewStudent.feePaymentLabelKey)} tone="outline" />
               </dd>
             </div>
+            <StudentContactSection phone={viewStudent.phone} whatsapp={viewStudent.whatsapp} />
             <div>
               <dt className="font-medium text-foreground">{t("table.accountStatus")}</dt>
               <dd className="mt-1">

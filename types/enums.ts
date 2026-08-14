@@ -1,4 +1,6 @@
 export {
+  AnnouncementTarget,
+  InquiryStatus,
   Role,
   LessonType,
   AssignmentTarget,

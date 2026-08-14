@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import {
@@ -6,6 +6,7 @@ import {
   bulkEnableStudentsAction,
 } from "@/actions/student.actions";
 import { ConfirmModal } from "@/components/modals/confirm-modal";
+import { BottomActionBar } from "@/components/ui/bottom-action-bar";
 import { Button } from "@/components/ui/button";
 import { t } from "@/content/navigation";
 
@@ -18,30 +19,30 @@ export function BulkActionBar({ selectedIds, onClear }: BulkActionBarProps) {
   const [disableOpen, setDisableOpen] = useState(false);
   const [enableOpen, setEnableOpen] = useState(false);
 
-  if (selectedIds.length === 0) {
-    return null;
-  }
-
   return (
-    <div className="sticky bottom-4 z-10 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-white p-4 shadow-md">
-      <p className="text-sm font-medium">{selectedIds.length} selected</p>
-      <div className="flex flex-wrap gap-2">
-        <Button type="button" variant="outline" size="sm" className="rounded-[4px]" onClick={onClear}>
-          Clear
-        </Button>
-        <Button type="button" size="sm" className="rounded-[4px]" onClick={() => setEnableOpen(true)}>
-          {t("action.enable")}
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant="destructive"
-          className="rounded-[4px]"
-          onClick={() => setDisableOpen(true)}
-        >
-          {t("action.disable")}
-        </Button>
-      </div>
+    <>
+      <BottomActionBar open={selectedIds.length > 0}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm font-medium">{selectedIds.length} selected</p>
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="outline" size="sm" className="rounded-[4px]" onClick={onClear}>
+              Clear
+            </Button>
+            <Button type="button" size="sm" className="rounded-[4px]" onClick={() => setEnableOpen(true)}>
+              {t("action.enable")}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="destructive"
+              className="rounded-[4px]"
+              onClick={() => setDisableOpen(true)}
+            >
+              {t("action.disable")}
+            </Button>
+          </div>
+        </div>
+      </BottomActionBar>
 
       <ConfirmModal
         open={enableOpen}
@@ -78,6 +79,6 @@ export function BulkActionBar({ selectedIds, onClear }: BulkActionBarProps) {
           <input key={id} type="hidden" name="ids" value={id} />
         ))}
       </ConfirmModal>
-    </div>
+    </>
   );
 }

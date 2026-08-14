@@ -54,6 +54,7 @@ export default async function TeacherStudentsPage({ searchParams }: PageProps) {
     name: s.name,
     email: s.email,
     phone: s.phone,
+    whatsapp: s.whatsapp,
     grade: s.grade,
     isDisabled: s.isDisabled,
     avatarUrl: s.avatarUrl,

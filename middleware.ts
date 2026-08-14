@@ -1,6 +1,9 @@
-﻿import { NextResponse } from "next/server";
-import { auth } from "@/auth";
+﻿import NextAuth from "next-auth";
+import { NextResponse } from "next/server";
+import { authConfig } from "@/auth.config";
 import { validateLicense } from "@/lib/license";
+
+const { auth } = NextAuth(authConfig);
 
 function isLicenseExempt(pathname: string): boolean {
   if (pathname.startsWith("/license-error")) {

@@ -84,3 +84,22 @@ export async function saveFeeProof(file: File) {
     maxBytes: MAX_IMAGE_BYTES,
   });
 }
+
+
+export async function saveInquiryAttachments(files: File[]) {
+  const urls: string[] = [];
+  for (const file of files) {
+    const url = await saveUploadedFile(file, {
+      subfolder: "inquiries",
+      allowedMimeTypes: [
+        "application/pdf",
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+      ],
+      maxBytes: MAX_IMAGE_BYTES,
+    });
+    urls.push(url);
+  }
+  return urls;
+}

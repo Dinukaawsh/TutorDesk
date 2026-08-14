@@ -15,6 +15,7 @@ import { FeeProofViewer } from "@/components/fees/fee-proof-viewer";
 import { ConfirmModal } from "@/components/modals/confirm-modal";
 import { IconButton } from "@/components/modals/icon-button";
 import { ViewModal } from "@/components/modals/view-modal";
+import { BottomActionBar } from "@/components/ui/bottom-action-bar";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -130,27 +131,7 @@ export function FeeReviewTable({ records, highlightId }: FeeReviewTableProps) {
             ))}
           </select>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            size="sm"
-            className="rounded-[4px]"
-            disabled={selectedPendingIds.length === 0}
-            onClick={() => setBulkMode("approve")}
-          >
-            {t("action.bulkApprove")} ({selectedPendingIds.length})
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            className="rounded-[4px]"
-            disabled={selectedPendingIds.length === 0}
-            onClick={() => setBulkMode("reject")}
-          >
-            {t("action.bulkReject")} ({selectedPendingIds.length})
-          </Button>
-        </div>
+
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-border bg-white/80 backdrop-blur">
@@ -340,6 +321,31 @@ export function FeeReviewTable({ records, highlightId }: FeeReviewTableProps) {
           <input type="hidden" name="feeRecordId" value={markPaidTarget.id} />
         ) : null}
       </ConfirmModal>
+
+      <BottomActionBar open={selectedPendingIds.length > 0}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm font-medium">{selectedPendingIds.length} fee record(s) selected</p>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              size="sm"
+              className="rounded-[4px]"
+              onClick={() => setBulkMode("approve")}
+            >
+              {t("action.bulkApprove")}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="rounded-[4px]"
+              onClick={() => setBulkMode("reject")}
+            >
+              {t("action.bulkReject")}
+            </Button>
+          </div>
+        </div>
+      </BottomActionBar>
 
       <ConfirmModal
         open={bulkMode !== null}

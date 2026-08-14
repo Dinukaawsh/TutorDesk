@@ -34,6 +34,19 @@ enum FeeStatus {
   PAID
 }
 
+enum AnnouncementTarget {
+  EVERYONE
+  SUBJECT
+  GRADE
+  SUBJECT_GRADE
+}
+
+enum InquiryStatus {
+  OPEN
+  REVIEWED
+  CLOSED
+}
+
 enum NotificationType {
   ASSIGNMENT_PUBLISHED
   LESSON_PUBLISHED
@@ -44,6 +57,10 @@ enum NotificationType {
   ACCOUNT_DISABLED
   ACCOUNT_ENABLED
   DEADLINE_REMINDER
+  ANNOUNCEMENT_PUBLISHED
+  INQUIRY_SUBMITTED
+  INQUIRY_UPDATED
+  INQUIRY_STATUS_CHANGED
 }
 
 model User {
@@ -71,6 +88,7 @@ model User {
   feeRecords            FeeRecord[]
   notifications         Notification[]
   individualAssignments Assignment[] @relation("IndividualStudent")
+  inquiries             Inquiry[]
 }
 
 model Subject {
@@ -86,7 +104,8 @@ model Subject {
   enrollments Enrollment[]
   lessons     Lesson[]
   assignments Assignment[]
-  feeRecords  FeeRecord[]
+  feeRecords     FeeRecord[]
+  announcements  Announcement[]
 }
 
 model Enrollment {
@@ -188,4 +207,40 @@ model Notification {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, readAt])
+}
+
+
+model Announcement {
+  id         String             @id @default(cuid())
+  title      String
+  body       String
+  targetType AnnouncementTarget
+  subjectId  String?
+  grade      String?
+  createdAt  DateTime           @default(now())
+  subject    Subject?           @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+}
+
+model Inquiry {
+  id             String        @id @default(cuid())
+  studentId      String
+  title          String
+  body           String
+  status         InquiryStatus @default(OPEN)
+  attachmentUrls String[]
+  teacherNote    String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  student        User          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  edits          InquiryEdit[]
+}
+
+model InquiryEdit {
+  id                String   @id @default(cuid())
+  inquiryId         String
+  titleBefore       String
+  bodyBefore        String
+  attachmentsBefore String[]
+  editedAt          DateTime @default(now())
+  inquiry           Inquiry  @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
 }

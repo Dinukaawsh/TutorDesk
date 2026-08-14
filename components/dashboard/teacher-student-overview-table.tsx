@@ -9,6 +9,7 @@ import { ConfirmModal } from "@/components/modals/confirm-modal";
 import { FormModal } from "@/components/modals/form-modal";
 import { IconButton } from "@/components/modals/icon-button";
 import { ViewModal } from "@/components/modals/view-modal";
+import { StudentContactSection } from "@/components/students/student-contact-section";
 import {
   StudentForm,
   type StudentFormData,
@@ -157,6 +158,10 @@ export function TeacherStudentOverviewTable({
                 />
               </dd>
             </div>
+            <StudentContactSection
+              phone={viewStudent.form.phone}
+              whatsapp={viewStudent.form.whatsapp}
+            />
             <div>
               <dt className="font-medium text-foreground">{t("table.accountStatus")}</dt>
               <dd className="mt-1">
