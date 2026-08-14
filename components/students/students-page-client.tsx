@@ -1,16 +1,12 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
+import { FiPlus } from "react-icons/fi";
 import { StudentFilters, type SubjectOption } from "@/components/students/student-filters";
 import { StudentForm } from "@/components/students/student-form";
 import { StudentTable, type StudentRow } from "@/components/students/student-table";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { FormModal } from "@/components/modals/form-modal";
+import { IconButton } from "@/components/modals/icon-button";
 
 type StudentsPageClientProps = {
   students: StudentRow[];
@@ -28,25 +24,28 @@ export function StudentsPageClient({
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button type="button" onClick={() => setCreateOpen(true)}>
-          Add student
-        </Button>
+        <IconButton
+          labelKey="action.addStudent"
+          icon={<FiPlus className="h-4 w-4" />}
+          variant="default"
+          onClick={() => setCreateOpen(true)}
+        />
       </div>
       <StudentFilters subjects={subjects} grades={grades} />
       <StudentTable students={students} subjects={subjects} />
 
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>New student</DialogTitle>
-          </DialogHeader>
-          <StudentForm
-            subjects={subjects}
-            onSuccess={() => setCreateOpen(false)}
-            onCancel={() => setCreateOpen(false)}
-          />
-        </DialogContent>
-      </Dialog>
+      <FormModal
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        title="New student"
+        className="max-w-2xl"
+      >
+        <StudentForm
+          subjects={subjects}
+          onSuccess={() => setCreateOpen(false)}
+          onCancel={() => setCreateOpen(false)}
+        />
+      </FormModal>
     </div>
   );
 }

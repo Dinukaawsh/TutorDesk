@@ -1,4 +1,4 @@
-﻿import type { FeeStatus } from "@prisma/client";
+import type { FeeStatus } from "@prisma/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatSubjectMonthlyFee } from "@/content/navigation";
 import { cn } from "@/lib/utils";

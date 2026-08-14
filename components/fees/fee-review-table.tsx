@@ -1,7 +1,8 @@
 ﻿"use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { FeeStatus } from "@prisma/client";
+import { FiCheck, FiEye, FiX } from "react-icons/fi";
 import {
   approveFeeAction,
   bulkApproveFeesAction,
@@ -9,21 +10,15 @@ import {
   manualMarkPaidAction,
   rejectFeeAction,
 } from "@/actions/fee.actions";
-import type { ActionResult } from "@/actions/auth.actions";
 import { formatSubjectMonthlyFee, t } from "@/content/navigation";
 import { FeeProofViewer } from "@/components/fees/fee-proof-viewer";
+import { ConfirmModal } from "@/components/modals/confirm-modal";
+import { IconButton } from "@/components/modals/icon-button";
+import { ViewModal } from "@/components/modals/view-modal";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { Textarea } from "@/components/ui/textarea";
 
 export type FeeReviewRow = {
   id: string;
@@ -42,8 +37,6 @@ export type FeeReviewRow = {
   };
 };
 
-const initialState: ActionResult = { success: false };
-
 function paymentStatusLabel(status: FeeStatus) {
   switch (status) {
     case "PAID":
@@ -55,68 +48,9 @@ function paymentStatusLabel(status: FeeStatus) {
   }
 }
 
-type RowActionsProps = {
-  record: FeeReviewRow;
-};
-
-function ApproveForm({ record }: RowActionsProps) {
-  const [state, action, pending] = useActionState(approveFeeAction, initialState);
-  return (
-    <form action={action} className="flex flex-col gap-2 lg:flex-row lg:items-end">
-      <input type="hidden" name="feeRecordId" value={record.id} />
-      <Input name="teacherNote" placeholder="Optional note" className="lg:max-w-xs" />
-      <Button type="submit" size="sm" disabled={pending}>
-        Approve
-      </Button>
-      {state.message ? <span className="text-xs text-muted-foreground">{state.message}</span> : null}
-    </form>
-  );
-}
-
-function RejectForm({ record }: RowActionsProps) {
-  const [open, setOpen] = useState(false);
-  const [state, action, pending] = useActionState(rejectFeeAction, initialState);
-  if (!open) {
-    return (
-      <Button type="button" size="sm" variant="outline" onClick={() => setOpen(true)}>
-        Reject
-      </Button>
-    );
-  }
-  return (
-    <form action={action} className="space-y-2 rounded-lg border border-border p-3">
-      <input type="hidden" name="feeRecordId" value={record.id} />
-      <Textarea name="teacherNote" placeholder="Reason for rejection" required rows={2} />
-      <div className="flex gap-2">
-        <Button type="submit" size="sm" variant="outline" disabled={pending}>
-          Confirm reject
-        </Button>
-        <Button type="button" size="sm" variant="ghost" onClick={() => setOpen(false)}>
-          Cancel
-        </Button>
-      </div>
-      {state.fieldErrors?.teacherNote?.[0] ? (
-        <p className="text-xs text-muted-foreground">{state.fieldErrors.teacherNote[0]}</p>
-      ) : null}
-    </form>
-  );
-}
-
-function ManualPaidForm({ record }: RowActionsProps) {
-  const [state, action, pending] = useActionState(manualMarkPaidAction, initialState);
-  return (
-    <form action={action} className="flex flex-col gap-2 lg:flex-row lg:items-end">
-      <input type="hidden" name="feeRecordId" value={record.id} />
-      <Input name="teacherNote" placeholder="Optional note" className="lg:max-w-xs" />
-      <Button type="submit" size="sm" variant="outline" disabled={pending}>
-        Mark paid
-      </Button>
-      {state.message ? <span className="text-xs text-muted-foreground">{state.message}</span> : null}
-    </form>
-  );
-}
-
 type BulkDialogMode = "approve" | "reject" | null;
+
+type RowActionTarget = FeeReviewRow | null;
 
 type FeeReviewTableProps = {
   records: FeeReviewRow[];
@@ -127,14 +61,10 @@ export function FeeReviewTable({ records, highlightId }: FeeReviewTableProps) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [gradeFilter, setGradeFilter] = useState("");
   const [bulkMode, setBulkMode] = useState<BulkDialogMode>(null);
-  const [bulkApproveState, bulkApproveAction, bulkApprovePending] = useActionState(
-    bulkApproveFeesAction,
-    initialState,
-  );
-  const [bulkRejectState, bulkRejectAction, bulkRejectPending] = useActionState(
-    bulkRejectFeesAction,
-    initialState,
-  );
+  const [proofTarget, setProofTarget] = useState<RowActionTarget>(null);
+  const [approveTarget, setApproveTarget] = useState<RowActionTarget>(null);
+  const [rejectTarget, setRejectTarget] = useState<RowActionTarget>(null);
+  const [markPaidTarget, setMarkPaidTarget] = useState<RowActionTarget>(null);
 
   const grades = useMemo(
     () =>
@@ -179,9 +109,7 @@ export function FeeReviewTable({ records, highlightId }: FeeReviewTableProps) {
     return <p className="text-sm text-muted-foreground">No fee records for this period.</p>;
   }
 
-  const bulkPending = bulkApprovePending || bulkRejectPending;
-  const bulkState = bulkMode === "reject" ? bulkRejectState : bulkApproveState;
-  const bulkAction = bulkMode === "reject" ? bulkRejectAction : bulkApproveAction;
+  const bulkAction = bulkMode === "reject" ? bulkRejectFeesAction : bulkApproveFeesAction;
 
   return (
     <div className="space-y-4">
@@ -206,19 +134,21 @@ export function FeeReviewTable({ records, highlightId }: FeeReviewTableProps) {
           <Button
             type="button"
             size="sm"
+            className="rounded-[4px]"
             disabled={selectedPendingIds.length === 0}
             onClick={() => setBulkMode("approve")}
           >
-            Bulk approve ({selectedPendingIds.length})
+            {t("action.bulkApprove")} ({selectedPendingIds.length})
           </Button>
           <Button
             type="button"
             size="sm"
             variant="outline"
+            className="rounded-[4px]"
             disabled={selectedPendingIds.length === 0}
             onClick={() => setBulkMode("reject")}
           >
-            Bulk reject ({selectedPendingIds.length})
+            {t("action.bulkReject")} ({selectedPendingIds.length})
           </Button>
         </div>
       </div>
@@ -281,7 +211,7 @@ export function FeeReviewTable({ records, highlightId }: FeeReviewTableProps) {
                     ) : null}
                   </td>
                   <td className="p-3 align-top">{record.subject.name}</td>
-                  <td className="p-3 align-top text-muted-foreground">{feeLabel ?? "—"}</td>
+                  <td className="p-3 align-top text-muted-foreground">{feeLabel ?? "-"}</td>
                   <td className="p-3 align-top">
                     <StatusBadge
                       label={paymentStatusLabel(record.status)}
@@ -289,18 +219,37 @@ export function FeeReviewTable({ records, highlightId }: FeeReviewTableProps) {
                     />
                   </td>
                   <td className="p-3 align-top">
-                    {record.proofUrl ? (
-                      <div className="mb-3 max-w-xs">
-                        <FeeProofViewer proofUrl={record.proofUrl} />
-                      </div>
-                    ) : null}
-                    {record.status === "PENDING" ? (
-                      <div className="space-y-2">
-                        <ApproveForm record={record} />
-                        <RejectForm record={record} />
-                      </div>
-                    ) : null}
-                    {record.status === "UNPAID" ? <ManualPaidForm record={record} /> : null}
+                    <div className="flex flex-wrap gap-1">
+                      {record.proofUrl ? (
+                        <IconButton
+                          labelKey="action.viewProof"
+                          icon={<FiEye className="h-4 w-4" />}
+                          onClick={() => setProofTarget(record)}
+                        />
+                      ) : null}
+                      {record.status === "PENDING" ? (
+                        <>
+                          <IconButton
+                            labelKey="action.approve"
+                            variant="default"
+                            icon={<FiCheck className="h-4 w-4" />}
+                            onClick={() => setApproveTarget(record)}
+                          />
+                          <IconButton
+                            labelKey="action.reject"
+                            icon={<FiX className="h-4 w-4" />}
+                            onClick={() => setRejectTarget(record)}
+                          />
+                        </>
+                      ) : null}
+                      {record.status === "UNPAID" ? (
+                        <IconButton
+                          labelKey="action.markPaid"
+                          icon={<FiCheck className="h-4 w-4" />}
+                          onClick={() => setMarkPaidTarget(record)}
+                        />
+                      ) : null}
+                    </div>
                   </td>
                 </tr>
               );
@@ -316,52 +265,116 @@ export function FeeReviewTable({ records, highlightId }: FeeReviewTableProps) {
         </table>
       </div>
 
-      <Dialog open={bulkMode !== null} onOpenChange={(open) => !open && setBulkMode(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {bulkMode === "reject" ? "Bulk reject fees" : "Bulk approve fees"}
-            </DialogTitle>
-          </DialogHeader>
-          <form action={bulkAction} className="space-y-4">
-            {selectedPendingIds.map((id) => (
-              <input key={id} type="hidden" name="feeRecordIds" value={id} />
-            ))}
-            {bulkMode === "reject" ? (
-              <div className="space-y-2">
-                <Label htmlFor="bulk-teacher-note">Note for students</Label>
-                <Textarea
-                  id="bulk-teacher-note"
-                  name="teacherNote"
-                  required
-                  rows={3}
-                  placeholder="Reason for rejection"
-                />
-                {bulkState.fieldErrors?.teacherNote?.[0] ? (
-                  <p className="text-sm text-muted-foreground">
-                    {bulkState.fieldErrors.teacherNote[0]}
-                  </p>
-                ) : null}
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <Label htmlFor="bulk-approve-note">Optional note</Label>
-                <Input id="bulk-approve-note" name="teacherNote" placeholder="Optional note" />
-              </div>
-            )}
-            {bulkState.message ? (
-              <p className="text-sm text-muted-foreground">{bulkState.message}</p>
-            ) : null}
-            <Button type="submit" disabled={bulkPending || selectedPendingIds.length === 0}>
-              {bulkPending
-                ? "Saving..."
-                : bulkMode === "reject"
-                  ? "Confirm bulk reject"
-                  : "Confirm bulk approve"}
-            </Button>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <ViewModal
+        open={Boolean(proofTarget?.proofUrl)}
+        onOpenChange={(open) => !open && setProofTarget(null)}
+        title={t("action.viewProof")}
+        size="lg"
+      >
+        {proofTarget?.proofUrl ? <FeeProofViewer proofUrl={proofTarget.proofUrl} /> : null}
+      </ViewModal>
+
+      <ConfirmModal
+        open={Boolean(approveTarget)}
+        onOpenChange={(open) => !open && setApproveTarget(null)}
+        title={t("modal.approveFee.title")}
+        description={approveTarget ? `${approveTarget.student.name} - ${approveTarget.subject.name}` : undefined}
+        confirmLabel={t("action.approve")}
+        formAction={approveFeeAction}
+        note={{
+          name: "teacherNote",
+          label: "Optional note",
+          required: false,
+          placeholder: "Optional note",
+          multiline: false,
+        }}
+        onSuccess={() => setApproveTarget(null)}
+      >
+        {approveTarget ? (
+          <input type="hidden" name="feeRecordId" value={approveTarget.id} />
+        ) : null}
+      </ConfirmModal>
+
+      <ConfirmModal
+        open={Boolean(rejectTarget)}
+        onOpenChange={(open) => !open && setRejectTarget(null)}
+        title={t("modal.rejectFee.title")}
+        description={rejectTarget ? `${rejectTarget.student.name} - ${rejectTarget.subject.name}` : undefined}
+        confirmLabel={t("action.reject")}
+        confirmVariant="destructive"
+        formAction={rejectFeeAction}
+        note={{
+          name: "teacherNote",
+          label: "Note for student",
+          required: true,
+          placeholder: "Reason for rejection",
+        }}
+        onSuccess={() => setRejectTarget(null)}
+      >
+        {rejectTarget ? (
+          <input type="hidden" name="feeRecordId" value={rejectTarget.id} />
+        ) : null}
+      </ConfirmModal>
+
+      <ConfirmModal
+        open={Boolean(markPaidTarget)}
+        onOpenChange={(open) => !open && setMarkPaidTarget(null)}
+        title={t("modal.markPaid.title")}
+        description={
+          markPaidTarget
+            ? `${markPaidTarget.student.name} - ${markPaidTarget.subject.name}`
+            : undefined
+        }
+        confirmLabel={t("action.markPaid")}
+        formAction={manualMarkPaidAction}
+        note={{
+          name: "teacherNote",
+          label: "Optional note",
+          required: false,
+          placeholder: "Optional note",
+          multiline: false,
+        }}
+        onSuccess={() => setMarkPaidTarget(null)}
+      >
+        {markPaidTarget ? (
+          <input type="hidden" name="feeRecordId" value={markPaidTarget.id} />
+        ) : null}
+      </ConfirmModal>
+
+      <ConfirmModal
+        open={bulkMode !== null}
+        onOpenChange={(open) => !open && setBulkMode(null)}
+        title={bulkMode === "reject" ? t("modal.bulkReject.title") : t("modal.bulkApprove.title")}
+        description={`${selectedPendingIds.length} fee record(s) selected`}
+        confirmLabel={bulkMode === "reject" ? t("action.bulkReject") : t("action.bulkApprove")}
+        confirmVariant={bulkMode === "reject" ? "destructive" : "default"}
+        formAction={bulkAction}
+        note={
+          bulkMode === "reject"
+            ? {
+                name: "teacherNote",
+                label: "Note for students",
+                required: true,
+                placeholder: "Reason for rejection",
+              }
+            : {
+                name: "teacherNote",
+                label: "Optional note",
+                required: false,
+                placeholder: "Optional note",
+                multiline: false,
+              }
+        }
+        onSuccess={() => {
+          setBulkMode(null);
+          setSelected(new Set());
+        }}
+      >
+        {selectedPendingIds.map((id) => (
+          <input key={id} type="hidden" name="feeRecordIds" value={id} />
+        ))}
+      </ConfirmModal>
     </div>
   );
 }
+

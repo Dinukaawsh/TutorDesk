@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 type FeeProofViewerProps = {
   proofUrl: string | null | undefined;

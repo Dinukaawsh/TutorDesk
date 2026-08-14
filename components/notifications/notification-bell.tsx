@@ -1,4 +1,4 @@
-﻿import { NotificationDropdown } from "@/components/notifications/notification-dropdown";
+import { NotificationDropdown } from "@/components/notifications/notification-dropdown";
 
 type NotificationBellProps = {
   role: "teacher" | "student";

@@ -1,29 +1,36 @@
-﻿"use client";
+"use client";
 
-import { useMemo, useState } from "react";
-import { FeeStatus } from "@prisma/client";
-import { resetStudentPasswordAction } from "@/actions/student.actions";
+import { useMemo, useState, useActionState, useEffect } from "react";
+import {
+  FiEdit2,
+  FiEye,
+  FiKey,
+  FiUserCheck,
+  FiUserX,
+} from "react-icons/fi";
+import {
+  bulkEnableStudentsAction,
+  disableStudentAction,
+  resetStudentPasswordAction,
+} from "@/actions/student.actions";
 import type { ActionResult } from "@/actions/auth.actions";
 import { BulkActionBar } from "@/components/students/bulk-action-bar";
-import { DisableStudentDialog } from "@/components/students/disable-student-dialog";
 import {
   StudentForm,
   type StudentFormData,
 } from "@/components/students/student-form";
 import type { SubjectOption } from "@/components/students/student-filters";
-import { Button } from "@/components/ui/button";
+import { ConfirmModal } from "@/components/modals/confirm-modal";
+import { FormModal } from "@/components/modals/form-modal";
+import { IconButton } from "@/components/modals/icon-button";
+import { ViewModal } from "@/components/modals/view-modal";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { AccountStatusBadge, StatusBadge } from "@/components/ui/status-badge";
+import { useActionToast } from "@/hooks/use-action-toast";
 import { t, type LabelKey } from "@/content/navigation";
-import { useActionState, useEffect } from "react";
 
 export type StudentRow = {
   id: string;
@@ -60,6 +67,8 @@ function ResetPasswordDialog({
     resetInitial,
   );
 
+  useActionToast(state);
+
   useEffect(() => {
     if (state.success) {
       onOpenChange(false);
@@ -67,43 +76,52 @@ function ResetPasswordDialog({
   }, [state.success, onOpenChange]);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Reset password</DialogTitle>
-        </DialogHeader>
-        {studentId ? (
-          <form action={formAction} className="space-y-4">
-            <input type="hidden" name="id" value={studentId} />
-            <div className="space-y-2">
-              <Label htmlFor="new-password">New password</Label>
-              <Input id="new-password" name="password" type="password" required />
-              {state.fieldErrors?.password?.[0] ? (
-                <p className="text-sm text-black/70">{state.fieldErrors.password[0]}</p>
-              ) : null}
-            </div>
-            {state.message && !state.success ? (
-              <p className="text-sm">{state.message}</p>
+    <FormModal open={open} onOpenChange={onOpenChange} title="Reset password">
+      {studentId ? (
+        <form action={formAction} className="space-y-4">
+          <input type="hidden" name="id" value={studentId} />
+          <div className="space-y-2">
+            <Label htmlFor="new-password">New password</Label>
+            <Input id="new-password" name="password" type="password" required />
+            {state.fieldErrors?.password?.[0] ? (
+              <p className="text-sm text-black/70">{state.fieldErrors.password[0]}</p>
             ) : null}
-            {state.success ? (
-              <p className="text-sm text-muted-foreground">Password reset. Student must change it on login.</p>
-            ) : null}
-            <Button type="submit" disabled={pending}>
+          </div>
+          {state.message && !state.success ? (
+            <p className="text-sm">{state.message}</p>
+          ) : null}
+          {state.success ? (
+            <p className="text-sm text-muted-foreground">
+              Password reset. Student must change it on login.
+            </p>
+          ) : null}
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-[4px]"
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" className="rounded-[4px]" disabled={pending}>
               {pending ? "Resetting..." : "Reset password"}
             </Button>
-          </form>
-        ) : null}
-      </DialogContent>
-    </Dialog>
+          </div>
+        </form>
+      ) : null}
+    </FormModal>
   );
 }
 
 export function StudentTable({ students, subjects }: StudentTableProps) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [editStudent, setEditStudent] = useState<StudentFormData | null>(null);
+  const [viewStudent, setViewStudent] = useState<StudentRow | null>(null);
   const [disableTarget, setDisableTarget] = useState<{ id: string; name: string } | null>(
     null,
   );
+  const [enableTarget, setEnableTarget] = useState<{ id: string; name: string } | null>(null);
   const [resetId, setResetId] = useState<string | null>(null);
 
   const allIds = useMemo(() => students.map((s) => s.id), [students]);
@@ -164,13 +182,13 @@ export function StudentTable({ students, subjects }: StudentTableProps) {
                     <div className="text-muted-foreground">{student.phone}</div>
                   ) : null}
                 </td>
-                <td className="p-3 align-top">{student.grade ?? "â€”"}</td>
+                <td className="p-3 align-top">{student.grade ?? "-"}</td>
                 <td className="p-3 align-top">
                   <div className="flex flex-wrap gap-1">
                     {student.subjects.map((s) => (
                       <StatusBadge key={s.id} label={s.name} tone="muted" />
                     ))}
-                    {student.subjects.length === 0 ? "â€”" : null}
+                    {student.subjects.length === 0 ? "-" : null}
                   </div>
                 </td>
                 <td className="p-3 align-top text-muted-foreground">{student.feeSummary}</td>
@@ -181,23 +199,36 @@ export function StudentTable({ students, subjects }: StudentTableProps) {
                   <AccountStatusBadge isDisabled={student.isDisabled} />
                 </td>
                 <td className="p-3 align-top">
-                  <div className="flex flex-wrap gap-2">
-                    <Button type="button" size="sm" variant="outline" onClick={() => setEditStudent(student.form)}>
-                      Edit
-                    </Button>
-                    <Button type="button" size="sm" variant="outline" onClick={() => setResetId(student.id)}>
-                      Reset pwd
-                    </Button>
+                  <div className="flex flex-wrap gap-1">
+                    <IconButton
+                      labelKey="action.view"
+                      icon={<FiEye className="h-4 w-4" />}
+                      onClick={() => setViewStudent(student)}
+                    />
+                    <IconButton
+                      labelKey="action.edit"
+                      icon={<FiEdit2 className="h-4 w-4" />}
+                      onClick={() => setEditStudent(student.form)}
+                    />
+                    <IconButton
+                      labelKey="action.resetPassword"
+                      icon={<FiKey className="h-4 w-4" />}
+                      onClick={() => setResetId(student.id)}
+                    />
                     {!student.isDisabled ? (
-                      <Button
-                        type="button"
-                        size="sm"
+                      <IconButton
+                        labelKey="action.disable"
                         variant="destructive"
+                        icon={<FiUserX className="h-4 w-4" />}
                         onClick={() => setDisableTarget({ id: student.id, name: student.name })}
-                      >
-                        Disable
-                      </Button>
-                    ) : null}
+                      />
+                    ) : (
+                      <IconButton
+                        labelKey="action.enable"
+                        icon={<FiUserCheck className="h-4 w-4" />}
+                        onClick={() => setEnableTarget({ id: student.id, name: student.name })}
+                      />
+                    )}
                   </div>
                 </td>
               </tr>
@@ -215,28 +246,98 @@ export function StudentTable({ students, subjects }: StudentTableProps) {
 
       <BulkActionBar selectedIds={[...selected]} onClear={() => setSelected(new Set())} />
 
-      <Dialog open={Boolean(editStudent)} onOpenChange={(open) => !open && setEditStudent(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Edit student</DialogTitle>
-          </DialogHeader>
-          {editStudent ? (
-            <StudentForm
-              subjects={subjects}
-              student={editStudent}
-              onSuccess={() => setEditStudent(null)}
-              onCancel={() => setEditStudent(null)}
-            />
-          ) : null}
-        </DialogContent>
-      </Dialog>
+      <FormModal
+        open={Boolean(editStudent)}
+        onOpenChange={(open) => !open && setEditStudent(null)}
+        title="Edit student"
+        className="max-w-2xl"
+      >
+        {editStudent ? (
+          <StudentForm
+            subjects={subjects}
+            student={editStudent}
+            onSuccess={() => setEditStudent(null)}
+            onCancel={() => setEditStudent(null)}
+          />
+        ) : null}
+      </FormModal>
 
-      <DisableStudentDialog
-        studentId={disableTarget?.id ?? null}
-        studentName={disableTarget?.name}
+      <ViewModal
+        open={Boolean(viewStudent)}
+        onOpenChange={(open) => !open && setViewStudent(null)}
+        title={t("modal.viewStudent.title")}
+      >
+        {viewStudent ? (
+          <dl className="space-y-4 text-sm">
+            <div>
+              <dt className="font-medium text-foreground">Name</dt>
+              <dd className="text-muted-foreground">{viewStudent.name}</dd>
+            </div>
+            <div>
+              <dt className="font-medium text-foreground">Grade</dt>
+              <dd className="text-muted-foreground">{viewStudent.grade ?? "-"}</dd>
+            </div>
+            <div>
+              <dt className="font-medium text-foreground">Subjects</dt>
+              <dd className="mt-1 flex flex-wrap gap-1">
+                {viewStudent.subjects.length > 0 ? (
+                  viewStudent.subjects.map((s) => (
+                    <StatusBadge key={s.id} label={s.name} tone="muted" />
+                  ))
+                ) : (
+                  <span className="text-muted-foreground">-</span>
+                )}
+              </dd>
+            </div>
+            <div>
+              <dt className="font-medium text-foreground">{t("table.paymentStatus")}</dt>
+              <dd className="mt-1">
+                <StatusBadge label={t(viewStudent.feePaymentLabelKey)} tone="outline" />
+              </dd>
+            </div>
+            <div>
+              <dt className="font-medium text-foreground">{t("table.accountStatus")}</dt>
+              <dd className="mt-1">
+                <AccountStatusBadge isDisabled={viewStudent.isDisabled} />
+              </dd>
+            </div>
+          </dl>
+        ) : null}
+      </ViewModal>
+
+      <ConfirmModal
         open={Boolean(disableTarget)}
         onOpenChange={(open) => !open && setDisableTarget(null)}
-      />
+        title={t("modal.disableStudent.title")}
+        description={
+          disableTarget
+            ? `Provide a reason for disabling ${disableTarget.name}.`
+            : "Provide a reason for disabling this student."
+        }
+        confirmLabel={t("action.disable")}
+        confirmVariant="destructive"
+        formAction={disableStudentAction}
+        note={{ name: "reason", label: "Reason", required: true }}
+        onSuccess={() => setDisableTarget(null)}
+      >
+        {disableTarget ? <input type="hidden" name="id" value={disableTarget.id} /> : null}
+      </ConfirmModal>
+
+      <ConfirmModal
+        open={Boolean(enableTarget)}
+        onOpenChange={(open) => !open && setEnableTarget(null)}
+        title={t("modal.enableStudent.title")}
+        description={
+          enableTarget
+            ? `Re-enable ${enableTarget.name}? ${t("modal.enableStudent.description")}`
+            : t("modal.enableStudent.description")
+        }
+        confirmLabel={t("action.enable")}
+        formAction={bulkEnableStudentsAction}
+        onSuccess={() => setEnableTarget(null)}
+      >
+        {enableTarget ? <input type="hidden" name="ids" value={enableTarget.id} /> : null}
+      </ConfirmModal>
 
       <ResetPasswordDialog
         studentId={resetId}
@@ -246,6 +347,3 @@ export function StudentTable({ students, subjects }: StudentTableProps) {
     </div>
   );
 }
-
-
-

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useActionState, useEffect } from "react";
 import { createStudentAction, updateStudentAction } from "@/actions/student.actions";
@@ -6,6 +6,7 @@ import type { ActionResult } from "@/actions/auth.actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useActionToast } from "@/hooks/use-action-toast";
 import type { SubjectOption } from "@/components/students/student-filters";
 
 const initialState: ActionResult = { success: false };
@@ -34,6 +35,8 @@ type StudentFormProps = {
 export function StudentForm({ subjects, student, onSuccess, onCancel }: StudentFormProps) {
   const action = student ? updateStudentAction : createStudentAction;
   const [state, formAction, pending] = useActionState(action, initialState);
+
+  useActionToast(state);
 
   useEffect(() => {
     if (state.success) {
@@ -137,15 +140,15 @@ export function StudentForm({ subjects, student, onSuccess, onCancel }: StudentF
         </p>
       ) : null}
 
-      <div className="flex gap-2">
-        <Button type="submit" disabled={pending}>
-          {pending ? "Saving..." : student ? "Update student" : "Create student"}
-        </Button>
+      <div className={onCancel ? "grid grid-cols-2 gap-2" : "flex"}>
         {onCancel ? (
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button type="button" variant="outline" className="rounded-[4px]" onClick={onCancel}>
             Cancel
           </Button>
         ) : null}
+        <Button type="submit" className="rounded-[4px]" disabled={pending}>
+          {pending ? "Saving..." : student ? "Update student" : "Create student"}
+        </Button>
       </div>
     </form>
   );

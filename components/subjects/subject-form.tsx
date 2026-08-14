@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useActionToast } from "@/hooks/use-action-toast";
 import type { SubjectCardData } from "@/components/subjects/subject-card";
 
 const initialState: ActionResult = { success: false };
@@ -20,6 +21,8 @@ type SubjectFormProps = {
 export function SubjectForm({ subject, onSuccess, onCancel }: SubjectFormProps) {
   const action = subject ? updateSubjectAction : createSubjectAction;
   const [state, formAction, pending] = useActionState(action, initialState);
+
+  useActionToast(state);
 
   useEffect(() => {
     if (state.success) {
@@ -83,15 +86,15 @@ export function SubjectForm({ subject, onSuccess, onCancel }: SubjectFormProps) 
           {state.message}
         </p>
       ) : null}
-      <div className="flex gap-2">
-        <Button type="submit" disabled={pending}>
-          {pending ? "Saving..." : subject ? "Update subject" : "Create subject"}
-        </Button>
+      <div className={onCancel ? "grid grid-cols-2 gap-2" : "flex"}>
         {onCancel ? (
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button type="button" variant="outline" className="rounded-[4px]" onClick={onCancel}>
             Cancel
           </Button>
         ) : null}
+        <Button type="submit" className="rounded-[4px]" disabled={pending}>
+          {pending ? "Saving..." : subject ? "Update subject" : "Create subject"}
+        </Button>
       </div>
     </form>
   );

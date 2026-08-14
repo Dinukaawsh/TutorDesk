@@ -1,7 +1,6 @@
-﻿import { logoutAction } from "@/actions/auth.actions";
-import { BrandLogo } from "@/components/layout/brand-logo";
+﻿import { BrandLogo } from "@/components/layout/brand-logo";
+import { HeaderSignOutButton } from "@/components/layout/header-sign-out-button";
 import { NotificationBell } from "@/components/notifications/notification-bell";
-import { Button } from "@/components/ui/button";
 
 type AppHeaderProps = {
   title: string;
@@ -24,15 +23,9 @@ export function AppHeader({ title, userName, userRole, unreadCount = 0 }: AppHea
           <NotificationBell role={userRole} initialUnread={unreadCount} />
         ) : null}
         {userName ? (
-          <span className="hidden text-sm text-foreground sm:inline">
-            {userName}
-          </span>
+          <span className="hidden text-sm text-foreground sm:inline">{userName}</span>
         ) : null}
-        <form action={logoutAction}>
-          <Button type="submit" variant="outline" size="sm">
-            Sign out
-          </Button>
-        </form>
+        <HeaderSignOutButton />
       </div>
     </header>
   );

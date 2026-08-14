@@ -1,4 +1,5 @@
 ﻿import type { Notification } from "@prisma/client";
+import { FiInbox } from "react-icons/fi";
 import { NotificationItem } from "@/components/notifications/notification-item";
 
 type NotificationListProps = {
@@ -13,7 +14,12 @@ export function NotificationList({
   emptyMessage = "No notifications yet.",
 }: NotificationListProps) {
   if (notifications.length === 0) {
-    return <p className="text-sm text-muted-foreground">{emptyMessage}</p>;
+    return (
+      <div className="flex flex-col items-center gap-2 py-8 text-center">
+        <FiInbox className="h-8 w-8 text-muted-foreground" aria-hidden />
+        <p className="text-sm text-muted-foreground">{emptyMessage}</p>
+      </div>
+    );
   }
 
   return (

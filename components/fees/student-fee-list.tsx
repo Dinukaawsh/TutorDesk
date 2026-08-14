@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import type { FeeStatus } from "@prisma/client";
 import { formatSubjectMonthlyFee } from "@/content/navigation";

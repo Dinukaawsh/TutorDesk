@@ -1,12 +1,7 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { FormModal } from "@/components/modals/form-modal";
 import { SubjectCard, type SubjectCardData } from "@/components/subjects/subject-card";
 import { SubjectForm } from "@/components/subjects/subject-form";
 
@@ -30,20 +25,19 @@ export function SubjectList({ subjects }: SubjectListProps) {
         ) : null}
       </div>
 
-      <Dialog open={Boolean(editing)} onOpenChange={(open) => !open && setEditing(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit subject</DialogTitle>
-          </DialogHeader>
-          {editing ? (
-            <SubjectForm
-              subject={editing}
-              onSuccess={() => setEditing(null)}
-              onCancel={() => setEditing(null)}
-            />
-          ) : null}
-        </DialogContent>
-      </Dialog>
+      <FormModal
+        open={Boolean(editing)}
+        onOpenChange={(open) => !open && setEditing(null)}
+        title="Edit subject"
+      >
+        {editing ? (
+          <SubjectForm
+            subject={editing}
+            onSuccess={() => setEditing(null)}
+            onCancel={() => setEditing(null)}
+          />
+        ) : null}
+      </FormModal>
     </>
   );
 }

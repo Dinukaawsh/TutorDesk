@@ -1,9 +1,11 @@
+export * from "./app-modal";
 export * from "./badge";
 export * from "./button";
 export * from "./card";
 export * from "./checkbox";
 export * from "./dialog";
 export * from "./file-upload";
+export * from "./icon-button";
 export * from "./input";
 export * from "./label";
 export * from "./loading-overlay";
@@ -13,3 +15,4 @@ export * from "./spinner";
 export * from "./status-badge";
 export * from "./textarea";
 export * from "./toast-provider";
+export * from "./tooltip";

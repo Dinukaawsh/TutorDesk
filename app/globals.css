@@ -6,8 +6,22 @@
   --primary: #2563eb;
   --muted: #f3f4f6;
   --muted-foreground: #6b7280;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
   --border: #e5e7eb;
   --card: #ffffff;
+  --card-foreground: #000000;
+  --success: #16a34a;
+  --success-foreground: #ffffff;
+  --warning: #ca8a04;
+  --warning-foreground: #ffffff;
+
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+
+  --modal-width: 480px;
+  --modal-width-lg: 720px;
 }
 
 @theme inline {
@@ -16,8 +30,15 @@
   --color-primary: var(--primary);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
   --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --font-sans: var(--font-roboto);
 }
 
@@ -25,4 +46,25 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-roboto), Roboto, system-ui, sans-serif;
+}
+
+.app-modal-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  padding-top: 1rem;
+  margin-top: 0.25rem;
+  border-top: 1px solid var(--border);
+}
+
+.app-modal-footer-two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.app-modal-footer-two > * {
+  width: 100%;
 }

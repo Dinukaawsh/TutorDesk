@@ -1,13 +1,9 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { FiPlus } from "react-icons/fi";
+import { FormModal } from "@/components/modals/form-modal";
+import { IconButton } from "@/components/modals/icon-button";
 import { SubjectForm } from "@/components/subjects/subject-form";
 
 export function SubjectsPageActions() {
@@ -15,17 +11,15 @@ export function SubjectsPageActions() {
 
   return (
     <>
-      <Button type="button" onClick={() => setOpen(true)}>
-        Add subject
-      </Button>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>New subject</DialogTitle>
-          </DialogHeader>
-          <SubjectForm onSuccess={() => setOpen(false)} onCancel={() => setOpen(false)} />
-        </DialogContent>
-      </Dialog>
+      <IconButton
+        labelKey="action.addSubject"
+        icon={<FiPlus className="h-4 w-4" />}
+        variant="default"
+        onClick={() => setOpen(true)}
+      />
+      <FormModal open={open} onOpenChange={setOpen} title="New subject">
+        <SubjectForm onSuccess={() => setOpen(false)} onCancel={() => setOpen(false)} />
+      </FormModal>
     </>
   );
 }
