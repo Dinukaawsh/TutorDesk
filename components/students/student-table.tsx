@@ -22,6 +22,7 @@ import {
 import type { SubjectOption, TagOption } from "@/components/students/student-filters";
 import { StudentTagBadge } from "@/components/students/student-tag-badge";
 import { ConfirmModal } from "@/components/modals/confirm-modal";
+import { FormPendingReporter } from "@/components/modals/form-pending-reporter";
 import { FormModal } from "@/components/modals/form-modal";
 import { IconButton } from "@/components/modals/icon-button";
 import { ViewModal } from "@/components/modals/view-modal";
@@ -93,6 +94,7 @@ function ResetPasswordDialog({
     >
       {studentId ? (
         <form id="reset-password-form" action={formAction} className="space-y-4">
+          <FormPendingReporter />
           <input type="hidden" name="id" value={studentId} />
           <div className="space-y-2">
             <Label htmlFor="new-password">New password</Label>

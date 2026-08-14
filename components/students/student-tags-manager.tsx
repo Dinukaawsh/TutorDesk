@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useActionToast } from "@/hooks/use-action-toast";
 import { useReportFormModalPending } from "@/components/modals/form-modal-context";
+import { FormPendingReporter } from "@/components/modals/form-pending-reporter";
 import { StudentTagBadge } from "@/components/students/student-tag-badge";
 import { t } from "@/content/navigation";
 
@@ -40,6 +41,7 @@ function CreateTagForm({ onSuccess }: { onSuccess: () => void }) {
 
   return (
     <form id="create-tag-form" action={formAction} className="space-y-4">
+      <FormPendingReporter />
       <div className="space-y-2">
         <Label htmlFor="tag-name">Tag name</Label>
         <Input id="tag-name" name="name" required placeholder="e.g. Scholarship, VIP" />

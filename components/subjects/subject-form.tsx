@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useActionToast } from "@/hooks/use-action-toast";
 import { useReportFormModalPending } from "@/components/modals/form-modal-context";
+import { FormPendingReporter } from "@/components/modals/form-pending-reporter";
 import type { SubjectCardData } from "@/components/subjects/subject-card";
 
 const initialState: ActionResult = { success: false };
@@ -39,6 +40,7 @@ export function SubjectForm({ subject, onSuccess, onCancel, formId, hideActions 
 
   return (
     <form action={formAction} id={formId} className="space-y-4">
+      <FormPendingReporter />
       {subject ? <input type="hidden" name="id" value={subject.id} /> : null}
       <div className="space-y-2">
         <Label htmlFor="subject-name">Name</Label>

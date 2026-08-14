@@ -5,6 +5,7 @@ import { AnnouncementTarget } from "@prisma/client";
 import { saveAnnouncementAction } from "@/actions/announcement.actions";
 import type { ActionResult } from "@/actions/auth.actions";
 import { useReportFormModalPending } from "@/components/modals/form-modal-context";
+import { FormPendingReporter } from "@/components/modals/form-pending-reporter";
 import { Button } from "@/components/ui/button";
 import { FormSelect } from "@/components/ui/form-select";
 import { Input } from "@/components/ui/input";
@@ -64,6 +65,7 @@ export function AnnouncementForm({
 
   return (
     <form action={formAction} id={formId} className="space-y-4">
+      <FormPendingReporter />
       {announcement ? <input type="hidden" name="id" value={announcement.id} /> : null}
       <div className="space-y-2">
         <Label htmlFor="announcement-title">Title</Label>

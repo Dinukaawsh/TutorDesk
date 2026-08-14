@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useActionToast } from "@/hooks/use-action-toast";
 import { useReportFormModalPending } from "@/components/modals/form-modal-context";
+import { FormPendingReporter } from "@/components/modals/form-pending-reporter";
 import type { SubjectOption, TagOption } from "@/components/students/student-filters";
 
 const initialState: ActionResult = { success: false };
@@ -58,6 +59,7 @@ export function StudentForm({ subjects, tags, student, onSuccess, onCancel, form
       id={formId}
       className="space-y-4"
     >
+      <FormPendingReporter />
       {student ? <input type="hidden" name="id" value={student.id} /> : null}
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2 sm:col-span-2">

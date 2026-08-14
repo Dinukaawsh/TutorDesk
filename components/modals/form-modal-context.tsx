@@ -16,11 +16,15 @@ export function FormModalProvider({
   open: boolean;
   children: React.ReactNode;
 }) {
-  const [pending, setPending] = React.useState(false);
+  const [pending, setPendingState] = React.useState(false);
+
+  const setPending = React.useCallback((value: boolean) => {
+    setPendingState(value);
+  }, []);
 
   React.useEffect(() => {
     if (!open) {
-      setPending(false);
+      setPendingState(false);
     }
   }, [open]);
 
@@ -29,7 +33,7 @@ export function FormModalProvider({
       pending,
       setPending,
     }),
-    [pending],
+    [pending, setPending],
   );
 
   return <FormModalContext.Provider value={value}>{children}</FormModalContext.Provider>;

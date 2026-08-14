@@ -102,7 +102,7 @@ function FormModalShell({
           <ModalActionButtonContent
             pending={pending}
             label={saveLabel ?? "Save"}
-            pendingLabel="Saving..."
+            pendingLabel="Please wait..."
           />
         </Button>,
       ]
