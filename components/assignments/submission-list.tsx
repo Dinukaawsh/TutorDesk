@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { SubmissionStatus } from "@prisma/client";
 import { GradingPanel } from "@/components/assignments/grading-panel";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -12,6 +12,7 @@ export type SubmissionListItem = {
   fileUrls: string[];
   attemptNumber: number;
   createdAt: Date;
+  resubmitDeadline: Date | null;
   student: { name: string; email: string };
 };
 
@@ -53,6 +54,7 @@ export function SubmissionList({ submissions }: { submissions: SubmissionListIte
             defaultMarks={submission.marks}
             defaultStatus={submission.status}
             defaultFeedback={submission.feedback}
+            defaultResubmitDeadline={submission.resubmitDeadline}
           />
         </div>
       ))}

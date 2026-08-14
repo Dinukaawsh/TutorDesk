@@ -76,6 +76,7 @@ model User {
   stream             String?
   phone              String?
   avatarUrl          String?
+  defaultCurrency     String?   @default("LKR")
   isDisabled         Boolean   @default(false)
   disableReason      String?
   disabledAt         DateTime?
@@ -164,6 +165,8 @@ model Submission {
   feedback      String?
   fileUrls      String[]
   attemptNumber Int              @default(1)
+  portalOpen       Boolean   @default(true)
+  resubmitDeadline DateTime?
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
 

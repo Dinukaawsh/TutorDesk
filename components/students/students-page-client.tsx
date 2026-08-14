@@ -39,12 +39,11 @@ export function StudentsPageClient({
         onOpenChange={setCreateOpen}
         title="New student"
         className="max-w-2xl"
+        formId="student-form"
+        saveLabel="Create student"
+        onCancel={() => setCreateOpen(false)}
       >
-        <StudentForm
-          subjects={subjects}
-          onSuccess={() => setCreateOpen(false)}
-          onCancel={() => setCreateOpen(false)}
-        />
+        <StudentForm formId="student-form" hideActions subjects={subjects} onSuccess={() => setCreateOpen(false)} />
       </FormModal>
     </div>
   );

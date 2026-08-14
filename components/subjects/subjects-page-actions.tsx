@@ -17,8 +17,15 @@ export function SubjectsPageActions() {
         variant="default"
         onClick={() => setOpen(true)}
       />
-      <FormModal open={open} onOpenChange={setOpen} title="New subject">
-        <SubjectForm onSuccess={() => setOpen(false)} onCancel={() => setOpen(false)} />
+      <FormModal
+        open={open}
+        onOpenChange={setOpen}
+        title="New subject"
+        formId="subject-form"
+        saveLabel="Create subject"
+        onCancel={() => setOpen(false)}
+      >
+        <SubjectForm formId="subject-form" hideActions onSuccess={() => setOpen(false)} />
       </FormModal>
     </>
   );

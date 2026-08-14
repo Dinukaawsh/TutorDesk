@@ -15,6 +15,7 @@ import { saveAssignmentAttachment, saveSubmissionFiles } from "@/lib/uploads";
 import {
   assignmentFormSchema,
   gradeSubmissionSchema,
+  reopenSubmissionPortalSchema,
 } from "@/schemas/assignment.schema";
 
 async function getTargetedStudentIds(assignmentId: string) {
@@ -72,6 +73,33 @@ function parseAssignmentForm(formData: FormData) {
     individualStudentId: formData.get("individualStudentId") || undefined,
     deadline: formData.get("deadline"),
   };
+}
+
+function parseResubmitDeadline(value: string): Date | null {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+  return date;
+}
+
+function canStudentSubmitLatest(
+  latest: {
+    status: SubmissionStatus;
+    portalOpen: boolean;
+    resubmitDeadline: Date | null;
+  } | null,
+  now: Date,
+): boolean {
+  if (!latest) {
+    return true;
+  }
+  return (
+    latest.status === SubmissionStatus.FAILED &&
+    latest.portalOpen &&
+    latest.resubmitDeadline != null &&
+    now <= latest.resubmitDeadline
+  );
 }
 
 export async function createAssignmentAction(
@@ -175,6 +203,7 @@ export async function gradeSubmissionAction(
     marks: formData.get("marks"),
     status: formData.get("status"),
     feedback: formData.get("feedback") || undefined,
+    resubmitDeadline: formData.get("resubmitDeadline") || undefined,
   };
 
   const parsed = gradeSubmissionSchema.safeParse(raw);
@@ -194,12 +223,23 @@ export async function gradeSubmissionAction(
     return { success: false, message: "Submission not found" };
   }
 
+  let resubmitDeadline: Date | null = null;
+  if (parsed.data.status === SubmissionStatus.FAILED) {
+    resubmitDeadline = parseResubmitDeadline(parsed.data.resubmitDeadline ?? "");
+    if (!resubmitDeadline) {
+      return { success: false, message: "Invalid resubmit deadline" };
+    }
+  }
+
   await prisma.submission.update({
     where: { id: submission.id },
     data: {
       marks: parsed.data.marks,
       status: parsed.data.status,
       feedback: parsed.data.feedback || null,
+      ...(parsed.data.status === SubmissionStatus.FAILED
+        ? { portalOpen: true, resubmitDeadline }
+        : { portalOpen: false, resubmitDeadline: null }),
     },
   });
 
@@ -214,6 +254,64 @@ export async function gradeSubmissionAction(
   revalidatePath(`/teacher/assignments/${submission.assignmentId}`);
   revalidatePath(`/student/assignments/${submission.assignmentId}`);
   return { success: true, message: "Submission graded" };
+}
+
+export async function reopenSubmissionPortalAction(
+  _prev: ActionResult | undefined,
+  formData: FormData,
+): Promise<ActionResult> {
+  try {
+    await requireTeacherSession();
+  } catch {
+    return { success: false, message: "Unauthorized" };
+  }
+
+  const parsed = reopenSubmissionPortalSchema.safeParse({
+    submissionId: formData.get("submissionId"),
+    resubmitDeadline: formData.get("resubmitDeadline"),
+  });
+
+  if (!parsed.success) {
+    return {
+      success: false,
+      fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
+    };
+  }
+
+  const resubmitDeadline = parseResubmitDeadline(parsed.data.resubmitDeadline);
+  if (!resubmitDeadline) {
+    return { success: false, message: "Invalid resubmit deadline" };
+  }
+
+  const submission = await prisma.submission.findUnique({
+    where: { id: parsed.data.submissionId },
+    include: { assignment: true, student: true },
+  });
+
+  if (!submission) {
+    return { success: false, message: "Submission not found" };
+  }
+
+  await prisma.submission.update({
+    where: { id: submission.id },
+    data: {
+      status: SubmissionStatus.FAILED,
+      portalOpen: true,
+      resubmitDeadline,
+    },
+  });
+
+  await createNotification({
+    userId: submission.studentId,
+    type: NotificationType.ASSIGNMENT_GRADED,
+    title: "Resubmission opened",
+    message: `${submission.assignment.title}: you may resubmit before the new deadline`,
+    link: `/student/assignments/${submission.assignmentId}`,
+  });
+
+  revalidatePath(`/teacher/assignments/${submission.assignmentId}`);
+  revalidatePath(`/student/assignments/${submission.assignmentId}`);
+  return { success: true, message: "Submission portal reopened" };
 }
 
 export async function submitAssignmentAction(
@@ -269,16 +367,21 @@ export async function submitAssignmentAction(
   const now = new Date();
   const isLate = now > assignment.deadline;
 
-  if (latest) {
-    if (latest.status !== SubmissionStatus.FAILED) {
+  if (!canStudentSubmitLatest(latest, now)) {
+    if (latest && latest.status !== SubmissionStatus.FAILED) {
       return { success: false, message: "You already submitted this assignment" };
     }
-    if (now > assignment.deadline) {
-      return {
-        success: false,
-        message: "Resubmission is only allowed before the deadline",
-      };
+    if (latest?.status === SubmissionStatus.FAILED && !latest.portalOpen) {
+      return { success: false, message: "The submission portal is closed" };
     }
+    if (
+      latest?.status === SubmissionStatus.FAILED &&
+      latest.resubmitDeadline &&
+      now > latest.resubmitDeadline
+    ) {
+      return { success: false, message: "The resubmit deadline has passed" };
+    }
+    return { success: false, message: "You cannot submit at this time" };
   }
 
   const files = formData.getAll("files").filter((f): f is File => f instanceof File && f.size > 0);
@@ -299,7 +402,7 @@ export async function submitAssignmentAction(
     };
   }
 
-  await prisma.submission.create({
+  const created = await prisma.submission.create({
     data: {
       assignmentId,
       studentId: student.id,
@@ -307,7 +410,20 @@ export async function submitAssignmentAction(
       isLate,
       fileUrls,
       attemptNumber: latest ? latest.attemptNumber + 1 : 1,
+      portalOpen: false,
     },
+  });
+
+  if (latest) {
+    await prisma.submission.update({
+      where: { id: latest.id },
+      data: { portalOpen: false },
+    });
+  }
+
+  await prisma.submission.update({
+    where: { id: created.id },
+    data: { portalOpen: false },
   });
 
   const teacher = await prisma.user.findFirst({
@@ -330,6 +446,7 @@ export async function submitAssignmentAction(
   revalidatePath(`/teacher/assignments/${assignmentId}`);
   return { success: true, message: isLate ? "Submitted (late)" : "Submitted" };
 }
+
 export async function toggleAssignmentPublishFormAction(
   assignmentId: string,
   published: boolean,

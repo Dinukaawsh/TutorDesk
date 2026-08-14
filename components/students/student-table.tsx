@@ -29,6 +29,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Pagination, PAGINATION_PAGE_SIZE } from "@/components/ui/pagination";
 import { AccountStatusBadge, StatusBadge } from "@/components/ui/status-badge";
 import { useActionToast } from "@/hooks/use-action-toast";
 import { t, type LabelKey } from "@/content/navigation";
@@ -78,9 +79,16 @@ function ResetPasswordDialog({
   }, [state.success, onOpenChange]);
 
   return (
-    <FormModal open={open} onOpenChange={onOpenChange} title="Reset password">
+    <FormModal
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Reset password"
+      formId="reset-password-form"
+      saveLabel="Reset password"
+      onCancel={() => onOpenChange(false)}
+    >
       {studentId ? (
-        <form action={formAction} className="space-y-4">
+        <form id="reset-password-form" action={formAction} className="space-y-4">
           <input type="hidden" name="id" value={studentId} />
           <div className="space-y-2">
             <Label htmlFor="new-password">New password</Label>
@@ -97,19 +105,6 @@ function ResetPasswordDialog({
               Password reset. Student must change it on login.
             </p>
           ) : null}
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              className="rounded-[4px]"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" className="rounded-[4px]" disabled={pending}>
-              {pending ? "Resetting..." : "Reset password"}
-            </Button>
-          </div>
         </form>
       ) : null}
     </FormModal>
@@ -117,6 +112,16 @@ function ResetPasswordDialog({
 }
 
 export function StudentTable({ students, subjects }: StudentTableProps) {
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    setPage(1);
+  }, [students]);
+
+  const pagedStudents = useMemo(() => {
+    const start = (page - 1) * PAGINATION_PAGE_SIZE;
+    return students.slice(start, start + PAGINATION_PAGE_SIZE);
+  }, [students, page]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [editStudent, setEditStudent] = useState<StudentFormData | null>(null);
   const [viewStudent, setViewStudent] = useState<StudentRow | null>(null);
@@ -126,8 +131,8 @@ export function StudentTable({ students, subjects }: StudentTableProps) {
   const [enableTarget, setEnableTarget] = useState<{ id: string; name: string } | null>(null);
   const [resetId, setResetId] = useState<string | null>(null);
 
-  const allIds = useMemo(() => students.map((s) => s.id), [students]);
-  const allSelected = students.length > 0 && selected.size === students.length;
+  const allIds = useMemo(() => pagedStudents.map((s) => s.id), [students]);
+  const allSelected = pagedStudents.length > 0 && pagedStudents.every((s) => selected.has(s.id));
 
   function toggleAll(checked: boolean) {
     setSelected(checked ? new Set(allIds) : new Set());
@@ -168,7 +173,7 @@ export function StudentTable({ students, subjects }: StudentTableProps) {
             </tr>
           </thead>
           <tbody>
-            {students.map((student) => (
+            {pagedStudents.map((student) => (
               <tr key={student.id} className="border-b border-border last:border-0">
                 <td className="p-3 align-top">
                   <Checkbox
@@ -253,13 +258,17 @@ export function StudentTable({ students, subjects }: StudentTableProps) {
         onOpenChange={(open) => !open && setEditStudent(null)}
         title="Edit student"
         className="max-w-2xl"
+        formId="student-form"
+        saveLabel="Update student"
+        onCancel={() => setEditStudent(null)}
       >
         {editStudent ? (
           <StudentForm
+            formId="student-form"
+            hideActions
             subjects={subjects}
             student={editStudent}
             onSuccess={() => setEditStudent(null)}
-            onCancel={() => setEditStudent(null)}
           />
         ) : null}
       </FormModal>
@@ -341,6 +350,12 @@ export function StudentTable({ students, subjects }: StudentTableProps) {
       >
         {enableTarget ? <input type="hidden" name="ids" value={enableTarget.id} /> : null}
       </ConfirmModal>
+
+      <Pagination
+        totalItems={students.length}
+        page={page}
+        onPageChange={setPage}
+      />
 
       <ResetPasswordDialog
         studentId={resetId}

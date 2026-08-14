@@ -16,11 +16,13 @@ type AnnouncementFormProps = {
   subjects: SubjectOption[];
   grades: string[];
   onSuccess?: () => void;
+  formId?: string;
+  hideActions?: boolean;
 };
 
 const initial: ActionResult = { success: false };
 
-export function AnnouncementForm({ subjects, grades, onSuccess }: AnnouncementFormProps) {
+export function AnnouncementForm({ subjects, grades, onSuccess, formId, hideActions }: AnnouncementFormProps) {
   const [state, formAction, pending] = useActionState(createAnnouncementAction, initial);
   useActionToast(state);
 
@@ -30,8 +32,10 @@ export function AnnouncementForm({ subjects, grades, onSuccess }: AnnouncementFo
     }
   }, [state.success, onSuccess]);
 
+  const showActions = !formId && !hideActions;
+
   return (
-    <form action={formAction} className="space-y-4">
+    <form action={formAction} id={formId} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="announcement-title">Title</Label>
         <Input id="announcement-title" name="title" required />
@@ -100,9 +104,11 @@ export function AnnouncementForm({ subjects, grades, onSuccess }: AnnouncementFo
         ) : null}
       </div>
       {state.message && !state.success ? <p className="text-sm">{state.message}</p> : null}
-      <Button type="submit" className="rounded-[4px]" disabled={pending}>
-        {pending ? "Publishing..." : "Publish announcement"}
-      </Button>
+      {showActions ? (
+        <Button type="submit" className="rounded-[4px]" disabled={pending}>
+          {pending ? "Publishing..." : "Publish announcement"}
+        </Button>
+      ) : null}
     </form>
   );
 }

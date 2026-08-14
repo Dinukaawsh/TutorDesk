@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { SearchBar } from "@/components/ui/search-bar";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -62,7 +62,7 @@ export function StudentFilters({ subjects, grades }: StudentFiltersProps) {
     >
       <div className="space-y-1 lg:col-span-2">
         <Label htmlFor="filter-q">Search</Label>
-        <Input id="filter-q" name="q" defaultValue={q} placeholder="Name, email, phone" />
+        <SearchBar id="filter-q" name="q" defaultValue={q} placeholder="Name, email, phone" />
       </div>
       <div className="space-y-1">
         <Label>Grade</Label>

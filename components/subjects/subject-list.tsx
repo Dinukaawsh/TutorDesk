@@ -29,12 +29,16 @@ export function SubjectList({ subjects }: SubjectListProps) {
         open={Boolean(editing)}
         onOpenChange={(open) => !open && setEditing(null)}
         title="Edit subject"
+        formId="subject-form"
+        saveLabel="Update subject"
+        onCancel={() => setEditing(null)}
       >
         {editing ? (
           <SubjectForm
+            formId="subject-form"
+            hideActions
             subject={editing}
             onSuccess={() => setEditing(null)}
-            onCancel={() => setEditing(null)}
           />
         ) : null}
       </FormModal>

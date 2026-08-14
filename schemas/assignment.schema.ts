@@ -1,4 +1,4 @@
-import { AssignmentTarget, SubmissionStatus } from "@prisma/client";
+﻿import { AssignmentTarget, SubmissionStatus } from "@prisma/client";
 import { z } from "zod";
 
 export const assignmentFormSchema = z
@@ -33,11 +33,29 @@ export const assignmentFormSchema = z
 
 export type AssignmentFormInput = z.infer<typeof assignmentFormSchema>;
 
-export const gradeSubmissionSchema = z.object({
-  submissionId: z.string().min(1),
-  marks: z.coerce.number().int().min(0).max(100),
-  status: z.enum([SubmissionStatus.PASSED, SubmissionStatus.FAILED]),
-  feedback: z.string().optional(),
-});
+export const gradeSubmissionSchema = z
+  .object({
+    submissionId: z.string().min(1),
+    marks: z.coerce.number().int().min(0).max(100),
+    status: z.enum([SubmissionStatus.PASSED, SubmissionStatus.FAILED]),
+    feedback: z.string().optional(),
+    resubmitDeadline: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.status === SubmissionStatus.FAILED && !data.resubmitDeadline?.trim()) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["resubmitDeadline"],
+        message: "Resubmit deadline is required when marking failed",
+      });
+    }
+  });
 
 export type GradeSubmissionInput = z.infer<typeof gradeSubmissionSchema>;
+
+export const reopenSubmissionPortalSchema = z.object({
+  submissionId: z.string().min(1),
+  resubmitDeadline: z.string().min(1, "Resubmit deadline is required"),
+});
+
+export type ReopenSubmissionPortalInput = z.infer<typeof reopenSubmissionPortalSchema>;

@@ -33,8 +33,22 @@ export function TeacherAnnouncementsClient({
         />
       </div>
       <AnnouncementList announcements={announcements} />
-      <FormModal open={open} onOpenChange={setOpen} title="New announcement" className="max-w-lg">
-        <AnnouncementForm subjects={subjects} grades={grades} onSuccess={() => setOpen(false)} />
+      <FormModal
+        open={open}
+        onOpenChange={setOpen}
+        title="New announcement"
+        className="max-w-lg"
+        formId="announcement-form"
+        saveLabel="Publish announcement"
+        onCancel={() => setOpen(false)}
+      >
+        <AnnouncementForm
+          formId="announcement-form"
+          hideActions
+          subjects={subjects}
+          grades={grades}
+          onSuccess={() => setOpen(false)}
+        />
       </FormModal>
     </div>
   );

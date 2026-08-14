@@ -115,13 +115,17 @@ export function TeacherStudentOverviewTable({
         onOpenChange={(open) => !open && setEditStudent(null)}
         title={t("dashboard.action.edit")}
         className="max-w-2xl"
+        formId="student-form"
+        saveLabel="Update student"
+        onCancel={() => setEditStudent(null)}
       >
         {editStudent ? (
           <StudentForm
+            formId="student-form"
+            hideActions
             subjects={subjects}
             student={editStudent}
             onSuccess={() => setEditStudent(null)}
-            onCancel={() => setEditStudent(null)}
           />
         ) : null}
       </FormModal>

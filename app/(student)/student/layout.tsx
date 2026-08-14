@@ -3,7 +3,7 @@ import { Role } from "@prisma/client";
 import { auth } from "@/auth";
 import { AppHeader } from "@/components/layout/app-header";
 import { AppSidebar } from "@/components/layout/app-sidebar";
-import { AnnouncementAlert } from "@/components/notifications/announcement-alert";
+import { StudentAlertBanner } from "@/components/notifications/student-alert-banner";
 import { studentNavItems } from "@/content/navigation";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 
@@ -27,7 +27,7 @@ export default async function StudentLayout({
         userRole="student"
         unreadCount={unreadCount}
       />
-      <AnnouncementAlert />
+      <StudentAlertBanner />
       <div className="flex min-h-0 flex-1">
         <AppSidebar items={studentNavItems} />
         <main className="td-scrollbar min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
@@ -35,3 +35,4 @@ export default async function StudentLayout({
     </div>
   );
 }
+

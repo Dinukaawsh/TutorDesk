@@ -3,12 +3,10 @@ import Link from "next/link";
 import { FeeStatus } from "@prisma/client";
 import { getFeeStatusSummary, getTeacherFees } from "@/actions/fee.actions";
 import { listSubjects } from "@/actions/subject.actions";
+import { FeeFilters } from "@/components/fees/fee-filters";
 import { FeeReviewTable, type FeeReviewRow } from "@/components/fees/fee-review-table";
 import { FeeStatusCard } from "@/components/fees/fee-status-card";
 import { PageHeader } from "@/components/layout/page-header";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { decimalToNumber, getCurrentMonthYear } from "@/lib/fees";
 
 type PageProps = {
@@ -95,70 +93,16 @@ export default async function TeacherFeesPage({ searchParams }: PageProps) {
         method="get"
         className="mb-6 grid gap-4 rounded-xl border border-border bg-white/80 p-4 backdrop-blur sm:grid-cols-2 lg:grid-cols-6"
       >
-        <div className="space-y-1">
-          <Label htmlFor="month">Month</Label>
-          <Input id="month" name="month" type="number" min={1} max={12} defaultValue={month} />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="year">Year</Label>
-          <Input id="year" name="year" type="number" min={2020} defaultValue={year} />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="status">Status</Label>
-          <select
-            id="status"
-            name="status"
-            defaultValue={status ?? ""}
-            className="flex h-10 w-full rounded-md border border-border bg-white px-3 text-sm"
-          >
-            <option value="">All</option>
-            <option value="UNPAID">Unpaid</option>
-            <option value="PENDING">Pending</option>
-            <option value="PAID">Paid</option>
-          </select>
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="subjectId">Subject</Label>
-          <select
-            id="subjectId"
-            name="subjectId"
-            defaultValue={subjectId ?? ""}
-            className="flex h-10 w-full rounded-md border border-border bg-white px-3 text-sm"
-          >
-            <option value="">All subjects</option>
-            {subjects.map((subject) => (
-              <option key={subject.id} value={subject.id}>
-                {subject.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="space-y-1">
-          <Label htmlFor="grade">Grade</Label>
-          <select
-            id="grade"
-            name="grade"
-            defaultValue={grade ?? ""}
-            className="flex h-10 w-full rounded-md border border-border bg-white px-3 text-sm"
-          >
-            <option value="">All grades</option>
-            {grades.map((g) => (
-              <option key={g} value={g}>
-                Grade {g}
-              </option>
-            ))}
-          </select>
-        </div>        <div className="space-y-1 sm:col-span-2 lg:col-span-1">
-          <Label htmlFor="q">Student</Label>
-          <Input id="q" name="q" placeholder="Name or email" defaultValue={q ?? ""} />
-        </div>
-        <div className="flex items-end gap-2 sm:col-span-2 lg:col-span-5">
-          <Button type="submit">Apply filters</Button>
-          <Button type="button" variant="outline" asChild>
-            <Link href="/teacher/fees">Reset</Link>
-          </Button>
-        </div>
+        <FeeFilters
+          month={month}
+          year={year}
+          status={status ?? ""}
+          subjectId={subjectId ?? ""}
+          grade={grade ?? ""}
+          q={q ?? ""}
+          subjects={subjects}
+          grades={grades}
+        />
       </form>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-3">
@@ -173,4 +117,3 @@ export default async function TeacherFeesPage({ searchParams }: PageProps) {
     </>
   );
 }
-

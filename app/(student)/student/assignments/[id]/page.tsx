@@ -1,14 +1,34 @@
-import { notFound, redirect } from "next/navigation";
+﻿import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { AssignmentTarget, Role, SubmissionStatus } from "@prisma/client";
 import { auth } from "@/auth";
 import { PageHeader } from "@/components/layout/page-header";
+import { AssignmentAttachment } from "@/components/assignments/assignment-attachment";
 import { AssignmentStatusCard } from "@/components/assignments/assignment-status-card";
 import { SubmissionUpload } from "@/components/assignments/submission-upload";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 
 type Props = { params: Promise<{ id: string }> };
+
+function canSubmitSubmission(
+  latest: {
+    status: SubmissionStatus;
+    portalOpen: boolean;
+    resubmitDeadline: Date | null;
+  } | null,
+  now: Date,
+) {
+  if (!latest) {
+    return true;
+  }
+  return (
+    latest.status === SubmissionStatus.FAILED &&
+    latest.portalOpen &&
+    latest.resubmitDeadline != null &&
+    now <= latest.resubmitDeadline
+  );
+}
 
 export default async function StudentAssignmentDetailPage({ params }: Props) {
   const { id } = await params;
@@ -49,20 +69,20 @@ export default async function StudentAssignmentDetailPage({ params }: Props) {
   });
 
   const now = new Date();
-  const pastDeadline = now > assignment.deadline;
+  const canSubmit = canSubmitSubmission(latestSubmission, now);
 
-  let canSubmit = false;
   let helperText: string | undefined;
-
-  if (!latestSubmission) {
-    canSubmit = true;
-  } else if (latestSubmission.status === SubmissionStatus.FAILED && !pastDeadline) {
-    canSubmit = true;
-    helperText = undefined;
-  } else if (latestSubmission.status === SubmissionStatus.FAILED && pastDeadline) {
-    helperText = "Resubmission is only allowed before the deadline.";
-  } else {
-    helperText = "Your submission is on file. Resubmit is only available if marked failed before the deadline.";
+  if (!canSubmit && latestSubmission) {
+    if (latestSubmission.status !== SubmissionStatus.FAILED) {
+      helperText =
+        "Your submission is on file. You can resubmit only if your teacher reopens the portal after a failed grade.";
+    } else if (!latestSubmission.portalOpen) {
+      helperText = "The submission portal is closed.";
+    } else if (latestSubmission.resubmitDeadline && now > latestSubmission.resubmitDeadline) {
+      helperText = "The resubmit deadline has passed.";
+    } else {
+      helperText = "You cannot submit at this time.";
+    }
   }
 
   return (
@@ -90,6 +110,12 @@ export default async function StudentAssignmentDetailPage({ params }: Props) {
               : null,
           }}
         />
+        {assignment.attachmentUrl ? (
+          <div className="rounded-lg border border-border bg-white/80 p-4">
+            <p className="mb-2 text-sm font-medium">Teacher attachment</p>
+            <AssignmentAttachment attachmentUrl={assignment.attachmentUrl} title={assignment.title} />
+          </div>
+        ) : null}
         <SubmissionUpload assignmentId={assignment.id} canSubmit={canSubmit} helperText={helperText} />
       </div>
     </>

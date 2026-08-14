@@ -30,9 +30,11 @@ type StudentFormProps = {
   student?: StudentFormData | null;
   onSuccess?: () => void;
   onCancel?: () => void;
+  formId?: string;
+  hideActions?: boolean;
 };
 
-export function StudentForm({ subjects, student, onSuccess, onCancel }: StudentFormProps) {
+export function StudentForm({ subjects, student, onSuccess, onCancel, formId, hideActions }: StudentFormProps) {
   const action = student ? updateStudentAction : createStudentAction;
   const [state, formAction, pending] = useActionState(action, initialState);
 
@@ -44,8 +46,14 @@ export function StudentForm({ subjects, student, onSuccess, onCancel }: StudentF
     }
   }, [state.success, onSuccess]);
 
+  const showActions = !formId && !hideActions;
+
   return (
-    <form action={formAction} className="max-h-[70vh] space-y-4 overflow-y-auto pr-1" encType="multipart/form-data">
+    <form
+      action={formAction}
+      id={formId}
+      className="space-y-4"
+    >
       {student ? <input type="hidden" name="id" value={student.id} /> : null}
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2 sm:col-span-2">
@@ -140,6 +148,7 @@ export function StudentForm({ subjects, student, onSuccess, onCancel }: StudentF
         </p>
       ) : null}
 
+      {showActions ? (
       <div className={onCancel ? "grid grid-cols-2 gap-2" : "flex"}>
         {onCancel ? (
           <Button type="button" variant="outline" className="rounded-[4px]" onClick={onCancel}>
@@ -150,6 +159,7 @@ export function StudentForm({ subjects, student, onSuccess, onCancel }: StudentF
           {pending ? "Saving..." : student ? "Update student" : "Create student"}
         </Button>
       </div>
+      ) : null}
     </form>
   );
 }

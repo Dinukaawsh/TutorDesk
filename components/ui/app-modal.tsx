@@ -1,13 +1,13 @@
-"use client";
+﻿"use client";
 
 import * as React from "react";
 import {
   Dialog,
   DialogContent,
+  DialogClose,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
 export type AppModalProps = {
@@ -33,18 +33,19 @@ export function AppModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={cn(
-          "flex max-h-[min(85vh,640px)] max-w-[var(--modal-width)] flex-col gap-0 overflow-hidden rounded-[var(--radius-md)] border border-border bg-card p-0 shadow-sm",
+          "flex max-h-[min(90vh,680px)] max-w-[var(--modal-width)] flex-col gap-0 overflow-hidden rounded-[var(--radius-md)] border border-border bg-card p-0 shadow-sm",
           size === "lg" && "max-w-[var(--modal-width-lg)]",
         )}
       >
-        <DialogHeader className="shrink-0 space-y-0 border-b border-border px-4 py-3">
+        <DialogHeader className="relative shrink-0 space-y-0 border-b border-border px-4 py-3 pr-10">
           <DialogTitle className="text-base font-semibold leading-tight">
             {title}
           </DialogTitle>
+          <DialogClose />
         </DialogHeader>
-        <ScrollArea className="td-scrollbar min-h-0 max-h-[50vh] flex-1">
-          <div className="px-4 py-4">{children}</div>
-        </ScrollArea>
+        <div className="min-h-0 flex-1 overflow-y-auto td-scrollbar px-4 py-4">
+          {children}
+        </div>
         {footer ? (
           <div
             className={cn(

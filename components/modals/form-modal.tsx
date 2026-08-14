@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import * as React from "react";
 import { AppModal } from "@/components/ui/app-modal";
@@ -22,6 +22,29 @@ type FormModalProps = {
   size?: "default" | "lg";
 };
 
+function findChildFormId(node: React.ReactNode): string | undefined {
+  let found: string | undefined;
+
+  React.Children.forEach(node, (child) => {
+    if (found || !React.isValidElement(child)) {
+      return;
+    }
+
+    const props = child.props as { formId?: string; children?: React.ReactNode };
+
+    if (typeof props.formId === "string" && props.formId.length > 0) {
+      found = props.formId;
+      return;
+    }
+
+    if (props.children) {
+      found = findChildFormId(props.children);
+    }
+  });
+
+  return found;
+}
+
 export function FormModal({
   open,
   onOpenChange,
@@ -38,7 +61,8 @@ export function FormModal({
   formId,
   size = "default",
 }: FormModalProps) {
-  const showFooter = Boolean(onSave || formId);
+  const resolvedFormId = formId ?? findChildFormId(children);
+  const showFooter = Boolean(onSave || resolvedFormId);
 
   function handleCancel() {
     onCancel?.();
@@ -72,10 +96,10 @@ export function FormModal({
             {cancelLabel}
           </Button>
           <Button
-            type={formId ? "submit" : "button"}
-            form={formId}
+            type={resolvedFormId ? "submit" : "button"}
+            form={resolvedFormId}
             disabled={loading || saveDisabled}
-            onClick={formId ? undefined : onSave}
+            onClick={resolvedFormId ? undefined : onSave}
           >
             {loading ? "Saving..." : saveLabel}
           </Button>

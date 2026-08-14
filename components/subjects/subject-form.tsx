@@ -1,10 +1,11 @@
-﻿"use client";
+"use client";
 
 import { useActionState, useEffect } from "react";
 import { createSubjectAction, updateSubjectAction } from "@/actions/subject.actions";
 import type { ActionResult } from "@/actions/auth.actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ColorPicker } from "@/components/ui/color-picker";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useActionToast } from "@/hooks/use-action-toast";
@@ -16,9 +17,11 @@ type SubjectFormProps = {
   subject?: SubjectCardData | null;
   onSuccess?: () => void;
   onCancel?: () => void;
+  formId?: string;
+  hideActions?: boolean;
 };
 
-export function SubjectForm({ subject, onSuccess, onCancel }: SubjectFormProps) {
+export function SubjectForm({ subject, onSuccess, onCancel, formId, hideActions }: SubjectFormProps) {
   const action = subject ? updateSubjectAction : createSubjectAction;
   const [state, formAction, pending] = useActionState(action, initialState);
 
@@ -30,8 +33,10 @@ export function SubjectForm({ subject, onSuccess, onCancel }: SubjectFormProps) 
     }
   }, [state.success, onSuccess]);
 
+  const showActions = !formId && !hideActions;
+
   return (
-    <form action={formAction} className="space-y-4">
+    <form action={formAction} id={formId} className="space-y-4">
       {subject ? <input type="hidden" name="id" value={subject.id} /> : null}
       <div className="space-y-2">
         <Label htmlFor="subject-name">Name</Label>
@@ -69,23 +74,20 @@ export function SubjectForm({ subject, onSuccess, onCancel }: SubjectFormProps) 
           <p className="text-sm text-black/70">{state.fieldErrors.monthlyFee[0]}</p>
         ) : null}
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="subject-color">Color (hex)</Label>
-        <Input
-          id="subject-color"
-          name="color"
-          placeholder="#2563eb"
-          defaultValue={subject?.color ?? "#2563eb"}
-        />
-        {state.fieldErrors?.color?.[0] ? (
-          <p className="text-sm text-black/70">{state.fieldErrors.color[0]}</p>
-        ) : null}
-      </div>
+      <ColorPicker
+        id="subject-color"
+        label="Color (hex)"
+        defaultValue={subject?.color ?? "#2563eb"}
+      />
+      {state.fieldErrors?.color?.[0] ? (
+        <p className="text-sm text-black/70">{state.fieldErrors.color[0]}</p>
+      ) : null}
       {state.message && !state.success ? (
         <p className="rounded-lg border border-border bg-muted px-3 py-2 text-sm">
           {state.message}
         </p>
       ) : null}
+      {showActions ? (
       <div className={onCancel ? "grid grid-cols-2 gap-2" : "flex"}>
         {onCancel ? (
           <Button type="button" variant="outline" className="rounded-[4px]" onClick={onCancel}>
@@ -96,6 +98,7 @@ export function SubjectForm({ subject, onSuccess, onCancel }: SubjectFormProps) 
           {pending ? "Saving..." : subject ? "Update subject" : "Create subject"}
         </Button>
       </div>
+      ) : null}
     </form>
   );
 }

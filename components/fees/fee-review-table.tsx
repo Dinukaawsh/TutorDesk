@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { FeeStatus } from "@prisma/client";
 import { FiCheck, FiEye, FiX } from "react-icons/fi";
 import {
@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { Pagination, PAGINATION_PAGE_SIZE } from "@/components/ui/pagination";
 
 export type FeeReviewRow = {
   id: string;
@@ -59,6 +60,7 @@ type FeeReviewTableProps = {
 };
 
 export function FeeReviewTable({ records, highlightId }: FeeReviewTableProps) {
+  const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [gradeFilter, setGradeFilter] = useState("");
   const [bulkMode, setBulkMode] = useState<BulkDialogMode>(null);
@@ -78,7 +80,16 @@ export function FeeReviewTable({ records, highlightId }: FeeReviewTableProps) {
     [records, gradeFilter],
   );
 
-  const pendingVisibleIds = visibleRecords.filter((r) => r.status === "PENDING").map((r) => r.id);
+  useEffect(() => {
+    setPage(1);
+  }, [records, gradeFilter]);
+
+  const pagedRecords = useMemo(() => {
+    const start = (page - 1) * PAGINATION_PAGE_SIZE;
+    return visibleRecords.slice(start, start + PAGINATION_PAGE_SIZE);
+  }, [visibleRecords, page]);
+
+  const pendingVisibleIds = pagedRecords.filter((r) => r.status === "PENDING").map((r) => r.id);
   const allPendingSelected =
     pendingVisibleIds.length > 0 && pendingVisibleIds.every((id) => selected.has(id));
 
@@ -153,7 +164,7 @@ export function FeeReviewTable({ records, highlightId }: FeeReviewTableProps) {
             </tr>
           </thead>
           <tbody>
-            {visibleRecords.map((record) => {
+            {pagedRecords.map((record) => {
               const feeLabel = formatSubjectMonthlyFee(
                 record.subject.monthlyFee,
                 record.subject.currency ?? "LKR",
@@ -235,7 +246,7 @@ export function FeeReviewTable({ records, highlightId }: FeeReviewTableProps) {
                 </tr>
               );
             })}
-            {visibleRecords.length === 0 ? (
+            {pagedRecords.length === 0 && visibleRecords.length === 0 ? (
               <tr>
                 <td colSpan={6} className="p-6 text-center text-muted-foreground">
                   No records for this grade.
@@ -245,6 +256,12 @@ export function FeeReviewTable({ records, highlightId }: FeeReviewTableProps) {
           </tbody>
         </table>
       </div>
+
+      <Pagination
+        totalItems={visibleRecords.length}
+        page={page}
+        onPageChange={setPage}
+      />
 
       <ViewModal
         open={Boolean(proofTarget?.proofUrl)}
