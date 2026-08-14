@@ -1,0 +1,28 @@
+﻿import { getNotificationsAction, markAllReadFormAction } from "@/actions/notification.actions";
+import { NotificationList } from "@/components/notifications/notification-list";
+import { PageHeader } from "@/components/layout/page-header";
+import { Button } from "@/components/ui/button";
+
+export default async function StudentNotificationsPage() {
+  const notifications = await getNotificationsAction(50);
+
+  return (
+    <>
+      <PageHeader
+        title="Notifications"
+        description="Assignments, grades, and fee updates"
+        actions={
+          <form action={markAllReadFormAction}>
+            <Button type="submit" variant="outline" size="sm">
+              Mark all read
+            </Button>
+          </form>
+        }
+      />
+      <div className="rounded-xl border border-border bg-white/80 p-2 backdrop-blur">
+        <NotificationList notifications={notifications} />
+      </div>
+    </>
+  );
+}
+

@@ -1,0 +1,189 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  TEACHER
+  STUDENT
+}
+
+enum LessonType {
+  PDF
+  VIDEO
+}
+
+enum AssignmentTarget {
+  GRADE
+  INDIVIDUAL
+}
+
+enum SubmissionStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  PASSED
+  FAILED
+}
+
+enum FeeStatus {
+  UNPAID
+  PENDING
+  PAID
+}
+
+enum NotificationType {
+  ASSIGNMENT_PUBLISHED
+  LESSON_PUBLISHED
+  ASSIGNMENT_GRADED
+  HOMEWORK_SUBMITTED
+  FEE_SUBMITTED
+  FEE_REVIEWED
+  ACCOUNT_DISABLED
+  ACCOUNT_ENABLED
+  DEADLINE_REMINDER
+}
+
+model User {
+  id                 String    @id @default(cuid())
+  email              String    @unique
+  passwordHash       String
+  role               Role
+  name               String
+  whatsapp           String?
+  age                Int?
+  grade              String?
+  school             String?
+  stream             String?
+  phone              String?
+  avatarUrl          String?
+  isDisabled         Boolean   @default(false)
+  disableReason      String?
+  disabledAt         DateTime?
+  mustChangePassword Boolean   @default(false)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  enrollments           Enrollment[]
+  submissions           Submission[]
+  feeRecords            FeeRecord[]
+  notifications         Notification[]
+  individualAssignments Assignment[] @relation("IndividualStudent")
+}
+
+model Subject {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  color       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  enrollments Enrollment[]
+  lessons     Lesson[]
+  assignments Assignment[]
+  feeRecords  FeeRecord[]
+}
+
+model Enrollment {
+  id        String   @id @default(cuid())
+  userId    String
+  subjectId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, subjectId])
+}
+
+model Lesson {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  type        LessonType
+  contentUrl  String
+  subjectId   String
+  grade       String
+  published   Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+}
+
+model Assignment {
+  id                  String           @id @default(cuid())
+  title               String
+  instructions        String?
+  attachmentUrl       String?
+  subjectId           String
+  grade               String?
+  targetType          AssignmentTarget
+  individualStudentId String?
+  deadline            DateTime
+  published           Boolean          @default(false)
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  subject           Subject      @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  individualStudent User?        @relation("IndividualStudent", fields: [individualStudentId], references: [id], onDelete: SetNull)
+  submissions       Submission[]
+}
+
+model Submission {
+  id            String           @id @default(cuid())
+  assignmentId  String
+  studentId     String
+  status        SubmissionStatus @default(SUBMITTED)
+  isLate        Boolean          @default(false)
+  marks         Int?
+  feedback      String?
+  fileUrls      String[]
+  attemptNumber Int              @default(1)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  student    User       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([assignmentId, studentId])
+}
+
+model FeeRecord {
+  id          String    @id @default(cuid())
+  studentId   String
+  subjectId   String
+  month       Int
+  year        Int
+  status      FeeStatus @default(UNPAID)
+  proofUrl    String?
+  studentNote String?
+  teacherNote String?
+  submittedAt DateTime?
+  reviewedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  student User    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, subjectId, month, year])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  message   String
+  link      String?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+}
