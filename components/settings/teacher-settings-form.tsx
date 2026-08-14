@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
 import { useActionToast } from "@/hooks/use-action-toast";
 
 const CURRENCIES = ["LKR", "USD", "EUR", "GBP", "INR", "AUD"] as const;
@@ -69,7 +70,16 @@ export function TeacherSettingsForm({ teacher }: TeacherSettingsFormProps) {
         </div>
         <div className="space-y-2">
           <Label htmlFor="teacher-email">Email</Label>
-          <Input id="teacher-email" defaultValue={teacher.email} readOnly disabled />
+          <Input
+            id="teacher-email"
+            name="email"
+            type="email"
+            defaultValue={teacher.email}
+            required
+          />
+          {state.fieldErrors?.email?.[0] ? (
+            <p className="text-sm text-black/70">{state.fieldErrors.email[0]}</p>
+          ) : null}
         </div>
         <div className="space-y-2">
           <Label htmlFor="teacher-whatsapp">WhatsApp</Label>
@@ -103,7 +113,14 @@ export function TeacherSettingsForm({ teacher }: TeacherSettingsFormProps) {
       ) : null}
 
       <Button type="submit" disabled={pending}>
-        {pending ? "Saving..." : "Save settings"}
+        {pending ? (
+          <span className="inline-flex items-center gap-2">
+            <Spinner size="sm" />
+            Saving...
+          </span>
+        ) : (
+          "Save settings"
+        )}
       </Button>
     </form>
   );

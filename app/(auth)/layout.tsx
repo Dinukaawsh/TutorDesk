@@ -1,4 +1,5 @@
 ﻿import { BrandLogo } from "@/components/layout/brand-logo";
+import { CloudBackground } from "@/components/layout/cloud-background";
 
 export default function AuthLayout({
   children,
@@ -6,9 +7,11 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-full flex-col items-center justify-center px-4 py-10">
-      <BrandLogo className="mb-8" />
-      <div className="w-full max-w-md">{children}</div>
-    </div>
+    <CloudBackground className="min-h-full">
+      <div className="flex min-h-full flex-col items-center justify-center px-4 py-10">
+        <BrandLogo className="mb-6" iconSize={40} />
+        <div className="w-full max-w-md">{children}</div>
+      </div>
+    </CloudBackground>
   );
 }

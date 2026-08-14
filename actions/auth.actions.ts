@@ -120,19 +120,20 @@ export async function loginAction(
     if (error instanceof Error && error.message.startsWith("DISABLED:")) {
       return { success: false, message: error.message.replace("DISABLED:", "") };
     }
+    if (error instanceof Error && error.message === "RATE_LIMIT") {
+      return {
+        success: false,
+        message: "Too many attempts. Please wait a few minutes and try again.",
+      };
+    }
     return { success: false, message: "Invalid email or password." };
   }
 
-  const session = await auth();
-  if (!session?.user) {
-    return { success: false, message: "Unable to start session." };
-  }
-
-  if (session.user.role === Role.TEACHER) {
+  if (user.role === Role.TEACHER) {
     redirect("/teacher/dashboard");
   }
 
-  if (session.user.mustChangePassword) {
+  if (user.mustChangePassword) {
     redirect("/student/change-password");
   }
 
