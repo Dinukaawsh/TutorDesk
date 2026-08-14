@@ -1,23 +1,13 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BrandLogo } from "@/components/layout/brand-logo";
+import { t, type NavItem } from "@/content/navigation";
 import { cn } from "@/lib/utils";
 
-export type SidebarItem = {
-  href: string;
-  label: string;
-};
-
-export const teacherSidebarItems: SidebarItem[] = [
-  { href: "/teacher/dashboard", label: "Dashboard" },
-  { href: "/teacher/students", label: "Students" },
-  { href: "/teacher/subjects", label: "Subjects" },
-];
-
 type AppSidebarProps = {
-  items: SidebarItem[];
+  items: NavItem[];
 };
 
 export function AppSidebar({ items }: AppSidebarProps) {
@@ -40,7 +30,7 @@ export function AppSidebar({ items }: AppSidebarProps) {
                   : "text-foreground hover:bg-muted",
               )}
             >
-              {item.label}
+              {t(item.labelKey)}
             </Link>
           );
         })}

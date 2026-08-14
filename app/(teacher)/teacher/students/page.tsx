@@ -1,10 +1,10 @@
-import { Suspense } from "react";
+﻿import { Suspense } from "react";
 import { FeeStatus } from "@prisma/client";
 import { listStudents } from "@/actions/student.actions";
 import { listSubjects } from "@/actions/subject.actions";
 import { PageHeader } from "@/components/layout/page-header";
 import { StudentsPageClient } from "@/components/students/students-page-client";
-import { formatFeeSummary } from "@/lib/fees";
+import { formatFeeSummary, getFeePaymentLabelKey } from "@/lib/fees";
 
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -62,6 +62,7 @@ export default async function TeacherStudentsPage({ searchParams }: PageProps) {
       name: e.subject.name,
     })),
     feeSummary: formatFeeSummary(s.feeRecords),
+    feePaymentLabelKey: getFeePaymentLabelKey(s.feeRecords),
     form: {
       id: s.id,
       name: s.name,
@@ -89,3 +90,4 @@ export default async function TeacherStudentsPage({ searchParams }: PageProps) {
     </>
   );
 }
+

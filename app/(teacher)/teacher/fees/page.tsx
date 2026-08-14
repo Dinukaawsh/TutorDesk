@@ -3,13 +3,13 @@ import Link from "next/link";
 import { FeeStatus } from "@prisma/client";
 import { getFeeStatusSummary, getTeacherFees } from "@/actions/fee.actions";
 import { listSubjects } from "@/actions/subject.actions";
-import { FeeReviewTable } from "@/components/fees/fee-review-table";
+import { FeeReviewTable, type FeeReviewRow } from "@/components/fees/fee-review-table";
 import { FeeStatusCard } from "@/components/fees/fee-status-card";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { getCurrentMonthYear } from "@/lib/fees";
+import { decimalToNumber, getCurrentMonthYear } from "@/lib/fees";
 
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -43,6 +43,7 @@ export default async function TeacherFeesPage({ searchParams }: PageProps) {
   const yearRaw = param(params.year);
   const statusRaw = param(params.status);
   const subjectId = param(params.subjectId);
+  const grade = param(params.grade);
   const q = param(params.q);
   const highlight = param(params.highlight);
 
@@ -53,12 +54,33 @@ export default async function TeacherFeesPage({ searchParams }: PageProps) {
       ? (statusRaw as FeeStatus)
       : undefined;
 
-  const filters = { month, year, status, subjectId, q };
-  const [records, summary, subjects] = await Promise.all([
+  const filters = { month, year, status, subjectId, grade, q };
+  const [rawRecords, summary, subjects] = await Promise.all([
     getTeacherFees(filters),
     getFeeStatusSummary(filters),
     listSubjects(),
   ]);
+
+  const records: FeeReviewRow[] = rawRecords.map((record) => ({
+    ...record,
+    subject: {
+      ...record.subject,
+      monthlyFee: decimalToNumber(record.subject.monthlyFee),
+    },
+  }));
+
+  const grades = [
+    ...new Set(
+      records
+        .map((r) => r.student.grade)
+        .filter((g): g is string => Boolean(g)),
+    ),
+  ].sort();
+
+  const totalListedFees = records.reduce((sum, record) => {
+    const fee = record.subject.monthlyFee ?? 0;
+    return sum + fee;
+  }, 0);
 
   const periodLabel = `${MONTHS[month - 1] ?? month} ${year}`;
 
@@ -71,7 +93,7 @@ export default async function TeacherFeesPage({ searchParams }: PageProps) {
 
       <form
         method="get"
-        className="mb-6 grid gap-4 rounded-xl border border-border bg-white/80 p-4 backdrop-blur sm:grid-cols-2 lg:grid-cols-5"
+        className="mb-6 grid gap-4 rounded-xl border border-border bg-white/80 p-4 backdrop-blur sm:grid-cols-2 lg:grid-cols-6"
       >
         <div className="space-y-1">
           <Label htmlFor="month">Month</Label>
@@ -111,7 +133,23 @@ export default async function TeacherFeesPage({ searchParams }: PageProps) {
             ))}
           </select>
         </div>
-        <div className="space-y-1 sm:col-span-2 lg:col-span-1">
+
+        <div className="space-y-1">
+          <Label htmlFor="grade">Grade</Label>
+          <select
+            id="grade"
+            name="grade"
+            defaultValue={grade ?? ""}
+            className="flex h-10 w-full rounded-md border border-border bg-white px-3 text-sm"
+          >
+            <option value="">All grades</option>
+            {grades.map((g) => (
+              <option key={g} value={g}>
+                Grade {g}
+              </option>
+            ))}
+          </select>
+        </div>        <div className="space-y-1 sm:col-span-2 lg:col-span-1">
           <Label htmlFor="q">Student</Label>
           <Input id="q" name="q" placeholder="Name or email" defaultValue={q ?? ""} />
         </div>
@@ -124,9 +162,9 @@ export default async function TeacherFeesPage({ searchParams }: PageProps) {
       </form>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-3">
-        <FeeStatusCard status={FeeStatus.UNPAID} count={summary.UNPAID} active={status === "UNPAID"} />
-        <FeeStatusCard status={FeeStatus.PENDING} count={summary.PENDING} active={status === "PENDING"} />
-        <FeeStatusCard status={FeeStatus.PAID} count={summary.PAID} active={status === "PAID"} />
+        <FeeStatusCard status={FeeStatus.UNPAID} count={summary.UNPAID} active={status === "UNPAID"} totalMonthlyAmount={totalListedFees} />
+        <FeeStatusCard status={FeeStatus.PENDING} count={summary.PENDING} active={status === "PENDING"} totalMonthlyAmount={totalListedFees} />
+        <FeeStatusCard status={FeeStatus.PAID} count={summary.PAID} active={status === "PAID"} totalMonthlyAmount={totalListedFees} />
       </div>
 
       <Suspense fallback={<p className="text-sm text-muted-foreground">Loading fees...</p>}>
@@ -135,3 +173,4 @@ export default async function TeacherFeesPage({ searchParams }: PageProps) {
     </>
   );
 }
+

@@ -1,4 +1,4 @@
-import { z } from "zod";
+﻿import { z } from "zod";
 
 export const subjectSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -8,6 +8,10 @@ export const subjectSchema = z.object({
     .regex(/^#[0-9A-Fa-f]{6}$/, "Use a hex color like #2563eb")
     .optional()
     .or(z.literal("")),
+  monthlyFee: z
+    .union([z.coerce.number().min(0, "Fee must be zero or greater"), z.literal("")])
+    .optional()
+    .transform((value) => (value === "" || value === undefined ? undefined : value)),
 });
 
 export type SubjectInput = z.infer<typeof subjectSchema>;

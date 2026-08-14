@@ -1,4 +1,4 @@
-import type { NextAuthConfig } from "next-auth";
+﻿import type { NextAuthConfig } from "next-auth";
 import type { Role } from "@prisma/client";
 
 export const authConfig = {
@@ -7,6 +7,7 @@ export const authConfig = {
   },
   session: {
     strategy: "jwt",
+    maxAge: 24 * 60 * 60,
   },
   callbacks: {
     authorized({ auth, request }) {

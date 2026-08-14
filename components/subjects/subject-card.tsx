@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useTransition } from "react";
 import { deleteSubjectAction } from "@/actions/subject.actions";
+import { formatSubjectMonthlyFee } from "@/content/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -12,6 +13,7 @@ export type SubjectCardData = {
   description: string | null;
   color: string | null;
   enrollmentCount: number;
+  monthlyFee?: number | null;
 };
 
 type SubjectCardProps = {
@@ -21,6 +23,7 @@ type SubjectCardProps = {
 
 export function SubjectCard({ subject, onEdit }: SubjectCardProps) {
   const [pending, startTransition] = useTransition();
+  const feeLabel = formatSubjectMonthlyFee(subject.monthlyFee ?? null);
 
   function handleDelete() {
     if (!confirm(`Delete "${subject.name}"? This cannot be undone.`)) {
@@ -44,6 +47,9 @@ export function SubjectCard({ subject, onEdit }: SubjectCardProps) {
         <StatusBadge label={`${subject.enrollmentCount} enrolled`} tone="muted" />
       </CardHeader>
       <CardContent className="space-y-3">
+        {feeLabel ? (
+          <p className="text-sm font-medium text-foreground">{feeLabel} / month</p>
+        ) : null}
         {subject.description ? (
           <p className="text-sm text-muted-foreground">{subject.description}</p>
         ) : (

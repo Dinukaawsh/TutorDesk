@@ -1,21 +1,10 @@
-const UPLOAD_DIR = process.env.UPLOAD_DIR ?? "public/uploads";
+﻿import { uploadFile } from "@/lib/cloudinary";
 
-export function getUploadDir() {
-  return UPLOAD_DIR;
-}
-
-export function buildPublicUploadUrl(filename: string) {
-  const base = process.env.NEXT_PUBLIC_UPLOAD_BASE ?? "/uploads";
-  return `${base}/${filename.replace(/^\/+/, "")}`;
-}
-
-export function sanitizeFilename(name: string) {
-  return name.replace(/[^a-zA-Z0-9._-]/g, "_");
-}
-
-import fs from "fs/promises";
-import path from "path";
-import { randomUUID } from "crypto";
+export {
+  buildPublicUploadUrl,
+  getUploadDir,
+  sanitizeFilename,
+} from "@/lib/upload-local";
 
 const MAX_PDF_BYTES = 15 * 1024 * 1024;
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
@@ -46,12 +35,7 @@ export async function saveUploadedFile(
     }
   }
 
-  const safeName = sanitizeFilename(file.name || "upload");
-  const filename = `${randomUUID()}-${safeName}`;
-  const dir = path.join(process.cwd(), getUploadDir(), options.subfolder);
-  await fs.mkdir(dir, { recursive: true });
-  await fs.writeFile(path.join(dir, filename), Buffer.from(await file.arrayBuffer()));
-  return buildPublicUploadUrl(`${options.subfolder}/${filename}`.replace(/\\/g, "/"));
+  return uploadFile(file, options.subfolder);
 }
 
 export async function saveLessonPdf(file: File) {

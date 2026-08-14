@@ -1,19 +1,10 @@
-﻿import { redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { Role } from "@prisma/client";
 import { auth } from "@/auth";
 import { AppHeader } from "@/components/layout/app-header";
 import { AppSidebar } from "@/components/layout/app-sidebar";
+import { teacherNavItems } from "@/content/navigation";
 import { getUnreadNotificationCount } from "@/lib/notifications";
-
-const teacherNav = [
-  { href: "/teacher/dashboard", label: "Dashboard" },
-  { href: "/teacher/students", label: "Students" },
-  { href: "/teacher/subjects", label: "Subjects" },
-  { href: "/teacher/lessons", label: "Lessons" },
-  { href: "/teacher/assignments", label: "Assignments" },
-  { href: "/teacher/fees", label: "Fees" },
-  { href: "/teacher/notifications", label: "Notifications" },
-];
 
 export default async function TeacherLayout({
   children,
@@ -36,7 +27,7 @@ export default async function TeacherLayout({
         unreadCount={unreadCount}
       />
       <div className="flex flex-1">
-        <AppSidebar items={teacherNav} />
+        <AppSidebar items={teacherNavItems} />
         <main className="flex-1 p-4 sm:p-6">{children}</main>
       </div>
     </div>

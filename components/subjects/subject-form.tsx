@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useActionState, useEffect } from "react";
 import { createSubjectAction, updateSubjectAction } from "@/actions/subject.actions";
@@ -50,6 +50,21 @@ export function SubjectForm({ subject, onSuccess, onCancel }: SubjectFormProps) 
           rows={3}
           defaultValue={subject?.description ?? ""}
         />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="subject-monthly-fee">Monthly fee (LKR)</Label>
+        <Input
+          id="subject-monthly-fee"
+          name="monthlyFee"
+          type="number"
+          min={0}
+          step="0.01"
+          placeholder="Optional"
+          defaultValue={subject?.monthlyFee ?? ""}
+        />
+        {state.fieldErrors?.monthlyFee?.[0] ? (
+          <p className="text-sm text-black/70">{state.fieldErrors.monthlyFee[0]}</p>
+        ) : null}
       </div>
       <div className="space-y-2">
         <Label htmlFor="subject-color">Color (hex)</Label>

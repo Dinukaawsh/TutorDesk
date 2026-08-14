@@ -1,7 +1,7 @@
 ﻿import { getStudentFees } from "@/actions/fee.actions";
-import { StudentFeeList } from "@/components/fees/student-fee-list";
+import { StudentFeeList, type StudentFeeRecord } from "@/components/fees/student-fee-list";
 import { PageHeader } from "@/components/layout/page-header";
-import { getCurrentMonthYear } from "@/lib/fees";
+import { decimalToNumber, getCurrentMonthYear } from "@/lib/fees";
 
 const MONTHS = [
   "January",
@@ -19,7 +19,14 @@ const MONTHS = [
 ];
 
 export default async function StudentFeesPage() {
-  const records = await getStudentFees();
+  const rows = await getStudentFees();
+  const records: StudentFeeRecord[] = rows.map((record) => ({
+    ...record,
+    subject: {
+      ...record.subject,
+      monthlyFee: decimalToNumber(record.subject.monthlyFee),
+    },
+  }));
   const { month, year } = getCurrentMonthYear();
   const monthLabel = `${MONTHS[month - 1] ?? month} ${year}`;
 

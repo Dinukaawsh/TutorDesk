@@ -1,6 +1,7 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import { CloudBackground } from "@/components/layout/cloud-background";
+import { ToastProvider } from "@/components/ui/toast-provider";
 import "./globals.css";
 
 const roboto = Roboto({
@@ -27,6 +28,7 @@ export default function RootLayout({
     <html lang="en" className={`${roboto.variable} h-full`}>
       <body className="min-h-full font-sans antialiased">
         <CloudBackground>{children}</CloudBackground>
+        <ToastProvider />
       </body>
     </html>
   );

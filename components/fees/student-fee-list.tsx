@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import type { FeeStatus } from "@prisma/client";
+import { formatSubjectMonthlyFee } from "@/content/navigation";
 import { FeeProofUpload } from "@/components/fees/fee-proof-upload";
 import { FeeProofViewer } from "@/components/fees/fee-proof-viewer";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -11,7 +12,13 @@ export type StudentFeeRecord = {
   proofUrl: string | null;
   studentNote: string | null;
   teacherNote: string | null;
-  subject: { id: string; name: string; color: string | null };
+  subject: {
+    id: string;
+    name: string;
+    color: string | null;
+    monthlyFee: number | null;
+    currency: string | null;
+  };
 };
 
 function statusLabel(status: FeeStatus) {
@@ -44,6 +51,10 @@ export function StudentFeeList({ records, monthLabel }: StudentFeeListProps) {
       <p className="text-sm text-muted-foreground">Fees for {monthLabel}</p>
       {records.map((record) => {
         const canUpload = record.status === "UNPAID";
+        const priceLabel = formatSubjectMonthlyFee(
+          record.subject.monthlyFee,
+          record.subject.currency ?? "LKR",
+        );
         return (
           <div
             key={record.id}
@@ -52,6 +63,9 @@ export function StudentFeeList({ records, monthLabel }: StudentFeeListProps) {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="font-medium text-foreground">{record.subject.name}</p>
+                {priceLabel ? (
+                  <p className="text-sm text-muted-foreground">{priceLabel} due this month</p>
+                ) : null}
                 {record.teacherNote ? (
                   <p className="mt-1 text-sm text-muted-foreground">{record.teacherNote}</p>
                 ) : null}

@@ -6,6 +6,8 @@ import type { ActionResult } from "@/actions/auth.actions";
 import type { FeeListFilters } from "@/schemas/fee.schema";
 import {
   approveFeeSchema,
+  bulkApproveFeesSchema,
+  bulkRejectFeesSchema,
   manualMarkPaidSchema,
   rejectFeeSchema,
   submitFeeProofSchema,
@@ -19,6 +21,31 @@ import { saveFeeProof } from "@/lib/uploads";
 function revalidateFeePaths() {
   revalidatePath("/teacher/fees");
   revalidatePath("/student/fees");
+}
+
+function buildStudentFeeFilter(filters: FeeListFilters) {
+  const q = filters.q?.trim();
+  const grade = filters.grade?.trim();
+  if (!q && !grade) {
+    return undefined;
+  }
+
+  const nameEmailOr = q
+    ? {
+        OR: [
+          { name: { contains: q, mode: "insensitive" as const } },
+          { email: { contains: q, mode: "insensitive" as const } },
+        ],
+      }
+    : {};
+
+  if (grade && q) {
+    return { grade, ...nameEmailOr };
+  }
+  if (grade) {
+    return { grade };
+  }
+  return nameEmailOr;
 }
 
 async function ensureStudentFeeRecords(studentId: string, month: number, year: number) {
@@ -96,6 +123,7 @@ export async function getTeacherFees(filters: FeeListFilters = {}) {
   const { month: defaultMonth, year: defaultYear } = getCurrentMonthYear();
   const month = filters.month ?? defaultMonth;
   const year = filters.year ?? defaultYear;
+  const studentFilter = buildStudentFeeFilter(filters);
 
   const records = await prisma.feeRecord.findMany({
     where: {
@@ -104,22 +132,21 @@ export async function getTeacherFees(filters: FeeListFilters = {}) {
       ...(filters.status ? { status: filters.status } : {}),
       ...(filters.subjectId ? { subjectId: filters.subjectId } : {}),
       ...(filters.studentId ? { studentId: filters.studentId } : {}),
-      ...(filters.q?.trim()
-        ? {
-            student: {
-              OR: [
-                { name: { contains: filters.q.trim(), mode: "insensitive" } },
-                { email: { contains: filters.q.trim(), mode: "insensitive" } },
-              ],
-            },
-          }
-        : {}),
+      ...(studentFilter ? { student: studentFilter } : {}),
     },
     include: {
       student: {
         select: { id: true, name: true, email: true, grade: true },
       },
-      subject: { select: { id: true, name: true, color: true } },
+      subject: {
+        select: {
+          id: true,
+          name: true,
+          color: true,
+          monthlyFee: true,
+          currency: true,
+        },
+      },
     },
     orderBy: [{ status: "asc" }, { student: { name: "asc" } }],
   });
@@ -141,7 +168,15 @@ export async function getStudentFees() {
   return prisma.feeRecord.findMany({
     where: { studentId: student.id, month, year },
     include: {
-      subject: { select: { id: true, name: true, color: true } },
+      subject: {
+        select: {
+          id: true,
+          name: true,
+          color: true,
+          monthlyFee: true,
+          currency: true,
+        },
+      },
     },
     orderBy: { subject: { name: "asc" } },
   });
@@ -337,6 +372,133 @@ export async function rejectFeeAction(
 
   revalidateFeePaths();
   return { success: true, message: "Proof rejected" };
+}
+
+export async function bulkApproveFeesAction(
+  _prev: ActionResult | undefined,
+  formData: FormData,
+): Promise<ActionResult> {
+  try {
+    await requireTeacherSession();
+  } catch {
+    return { success: false, message: "Unauthorized" };
+  }
+
+  const raw = {
+    feeRecordIds: formData.getAll("feeRecordIds").map(String),
+    teacherNote: formData.get("teacherNote") || undefined,
+  };
+
+  const parsed = bulkApproveFeesSchema.safeParse(raw);
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: parsed.error.flatten().formErrors[0] ?? "Invalid request",
+    };
+  }
+
+  const records = await prisma.feeRecord.findMany({
+    where: { id: { in: parsed.data.feeRecordIds } },
+    include: { subject: true },
+  });
+
+  const pendingIds = records.filter((r) => r.status === FeeStatus.PENDING).map((r) => r.id);
+  if (pendingIds.length === 0) {
+    return { success: false, message: "No pending fees in selection" };
+  }
+
+  await prisma.feeRecord.updateMany({
+    where: { id: { in: pendingIds } },
+    data: {
+      status: FeeStatus.PAID,
+      teacherNote: parsed.data.teacherNote || null,
+      reviewedAt: new Date(),
+    },
+  });
+
+  await Promise.all(
+    records
+      .filter((r) => pendingIds.includes(r.id))
+      .map((record) =>
+        notifyStudentFeeReviewed(
+          record.studentId,
+          record.subject.name,
+          FeeStatus.PAID,
+          parsed.data.teacherNote,
+        ),
+      ),
+  );
+
+  revalidateFeePaths();
+  return {
+    success: true,
+    message: `Approved ${pendingIds.length} fee${pendingIds.length === 1 ? "" : "s"}`,
+  };
+}
+
+export async function bulkRejectFeesAction(
+  _prev: ActionResult | undefined,
+  formData: FormData,
+): Promise<ActionResult> {
+  try {
+    await requireTeacherSession();
+  } catch {
+    return { success: false, message: "Unauthorized" };
+  }
+
+  const raw = {
+    feeRecordIds: formData.getAll("feeRecordIds").map(String),
+    teacherNote: formData.get("teacherNote"),
+  };
+
+  const parsed = bulkRejectFeesSchema.safeParse(raw);
+  if (!parsed.success) {
+    return {
+      success: false,
+      fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
+      message: parsed.error.flatten().formErrors[0],
+    };
+  }
+
+  const records = await prisma.feeRecord.findMany({
+    where: { id: { in: parsed.data.feeRecordIds } },
+    include: { subject: true },
+  });
+
+  const pendingIds = records.filter((r) => r.status === FeeStatus.PENDING).map((r) => r.id);
+  if (pendingIds.length === 0) {
+    return { success: false, message: "No pending fees in selection" };
+  }
+
+  await prisma.feeRecord.updateMany({
+    where: { id: { in: pendingIds } },
+    data: {
+      status: FeeStatus.UNPAID,
+      teacherNote: parsed.data.teacherNote,
+      reviewedAt: new Date(),
+      proofUrl: null,
+      submittedAt: null,
+    },
+  });
+
+  await Promise.all(
+    records
+      .filter((r) => pendingIds.includes(r.id))
+      .map((record) =>
+        notifyStudentFeeReviewed(
+          record.studentId,
+          record.subject.name,
+          FeeStatus.UNPAID,
+          parsed.data.teacherNote,
+        ),
+      ),
+  );
+
+  revalidateFeePaths();
+  return {
+    success: true,
+    message: `Rejected ${pendingIds.length} fee${pendingIds.length === 1 ? "" : "s"}`,
+  };
 }
 
 export async function manualMarkPaidAction(

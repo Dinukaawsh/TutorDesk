@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { useActionToast } from "@/hooks/use-action-toast";
 import { setupTeacherAction, type ActionResult } from "@/actions/auth.actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +14,7 @@ export function SetupForm() {
     setupTeacherAction,
     initialState,
   );
+  useActionToast(state);
 
   return (
     <form action={formAction} className="space-y-4">

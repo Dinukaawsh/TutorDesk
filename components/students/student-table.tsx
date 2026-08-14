@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import { FeeStatus } from "@prisma/client";
@@ -21,7 +21,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { StatusBadge } from "@/components/ui/status-badge";
+import { AccountStatusBadge, StatusBadge } from "@/components/ui/status-badge";
+import { t, type LabelKey } from "@/content/navigation";
 import { useActionState, useEffect } from "react";
 
 export type StudentRow = {
@@ -34,6 +35,7 @@ export type StudentRow = {
   avatarUrl: string | null;
   subjects: { id: string; name: string }[];
   feeSummary: string;
+  feePaymentLabelKey: LabelKey;
   form: StudentFormData;
 };
 
@@ -140,7 +142,8 @@ export function StudentTable({ students, subjects }: StudentTableProps) {
               <th className="p-3 font-medium">Grade</th>
               <th className="p-3 font-medium">Subjects</th>
               <th className="p-3 font-medium">Fees (month)</th>
-              <th className="p-3 font-medium">Status</th>
+              <th className="p-3 font-medium">{t("table.paymentStatus")}</th>
+              <th className="p-3 font-medium">{t("table.accountStatus")}</th>
               <th className="p-3 font-medium">Actions</th>
             </tr>
           </thead>
@@ -161,21 +164,21 @@ export function StudentTable({ students, subjects }: StudentTableProps) {
                     <div className="text-muted-foreground">{student.phone}</div>
                   ) : null}
                 </td>
-                <td className="p-3 align-top">{student.grade ?? "—"}</td>
+                <td className="p-3 align-top">{student.grade ?? "â€”"}</td>
                 <td className="p-3 align-top">
                   <div className="flex flex-wrap gap-1">
                     {student.subjects.map((s) => (
                       <StatusBadge key={s.id} label={s.name} tone="muted" />
                     ))}
-                    {student.subjects.length === 0 ? "—" : null}
+                    {student.subjects.length === 0 ? "â€”" : null}
                   </div>
                 </td>
                 <td className="p-3 align-top text-muted-foreground">{student.feeSummary}</td>
                 <td className="p-3 align-top">
-                  <StatusBadge
-                    label={student.isDisabled ? "Disabled" : "Enabled"}
-                    tone={student.isDisabled ? "outline" : "default"}
-                  />
+                  <StatusBadge label={t(student.feePaymentLabelKey)} tone="outline" />
+                </td>
+                <td className="p-3 align-top">
+                  <AccountStatusBadge isDisabled={student.isDisabled} />
                 </td>
                 <td className="p-3 align-top">
                   <div className="flex flex-wrap gap-2">
@@ -201,7 +204,7 @@ export function StudentTable({ students, subjects }: StudentTableProps) {
             ))}
             {students.length === 0 ? (
               <tr>
-                <td colSpan={7} className="p-6 text-center text-muted-foreground">
+                <td colSpan={8} className="p-6 text-center text-muted-foreground">
                   No students match your filters.
                 </td>
               </tr>
@@ -243,4 +246,6 @@ export function StudentTable({ students, subjects }: StudentTableProps) {
     </div>
   );
 }
+
+
 

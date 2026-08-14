@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { revalidatePath } from "next/cache";
 import { subjectIdSchema, subjectSchema } from "@/schemas/subject.schema";
@@ -24,6 +24,7 @@ export async function createSubjectAction(
     name: formData.get("name"),
     description: formData.get("description") || undefined,
     color: formData.get("color") || undefined,
+    monthlyFee: formData.get("monthlyFee") || undefined,
   };
 
   const parsed = subjectSchema.safeParse(raw);
@@ -34,12 +35,13 @@ export async function createSubjectAction(
     };
   }
 
-  const { name, description, color } = parsed.data;
+  const { name, description, color, monthlyFee } = parsed.data;
   await prisma.subject.create({
     data: {
       name,
       description: description || null,
       color: color || null,
+      monthlyFee: monthlyFee ?? null,
     },
   });
 
@@ -66,6 +68,7 @@ export async function updateSubjectAction(
     name: formData.get("name"),
     description: formData.get("description") || undefined,
     color: formData.get("color") || undefined,
+    monthlyFee: formData.get("monthlyFee") || undefined,
   };
 
   const parsed = subjectSchema.safeParse(raw);
@@ -76,13 +79,14 @@ export async function updateSubjectAction(
     };
   }
 
-  const { name, description, color } = parsed.data;
+  const { name, description, color, monthlyFee } = parsed.data;
   await prisma.subject.update({
     where: { id: idParsed.data.id },
     data: {
       name,
       description: description || null,
       color: color || null,
+      monthlyFee: monthlyFee ?? null,
     },
   });
 
@@ -119,3 +123,4 @@ export async function listSubjects() {
     },
   });
 }
+

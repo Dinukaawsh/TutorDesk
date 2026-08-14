@@ -1,7 +1,8 @@
-import { PageHeader } from "@/components/layout/page-header";
+﻿import { PageHeader } from "@/components/layout/page-header";
 import { SubjectList } from "@/components/subjects/subject-list";
 import { SubjectsPageActions } from "@/components/subjects/subjects-page-actions";
 import { listSubjects } from "@/actions/subject.actions";
+import { decimalToNumber } from "@/lib/fees";
 
 export default async function TeacherSubjectsPage() {
   const rows = await listSubjects();
@@ -11,6 +12,7 @@ export default async function TeacherSubjectsPage() {
     description: s.description,
     color: s.color,
     enrollmentCount: s._count.enrollments,
+    monthlyFee: decimalToNumber(s.monthlyFee),
   }));
 
   return (
@@ -24,3 +26,4 @@ export default async function TeacherSubjectsPage() {
     </>
   );
 }
+
