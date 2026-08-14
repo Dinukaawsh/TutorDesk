@@ -38,7 +38,7 @@ export function TeacherSettingsForm({ teacher }: TeacherSettingsFormProps) {
   useActionToast(state);
 
   return (
-    <form action={formAction} className="space-y-6" encType="multipart/form-data">
+    <form action={formAction} className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
         <div className="shrink-0">
           {teacher.avatarUrl ? (

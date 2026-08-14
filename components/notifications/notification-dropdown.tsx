@@ -33,6 +33,13 @@ export function NotificationDropdown({
   }, [initialUnread]);
 
   useEffect(() => {
+    startTransition(async () => {
+      const count = await getUnreadCountAction();
+      setUnread(count);
+    });
+  }, []);
+
+  useEffect(() => {
     if (!open) return;
     startTransition(async () => {
       const data = await getNotificationsAction(8);

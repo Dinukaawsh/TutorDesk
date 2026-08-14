@@ -58,7 +58,7 @@ export function SubmissionUpload({ assignmentId, canSubmit, helperText }: Submis
 
   return (
     <>
-      <form action={formAction} encType="multipart/form-data" className="space-y-3 rounded-lg border border-border bg-white/80 p-4">
+      <form action={formAction} className="space-y-3 rounded-lg border border-border bg-white/80 p-4">
         <input type="hidden" name="assignmentId" value={assignmentId} />
         <div className="space-y-2">
           <Label htmlFor="files">Upload homework (photo or PDF)</Label>

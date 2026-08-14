@@ -37,7 +37,7 @@ export function AssignmentForm({ action, subjects, students }: AssignmentFormPro
   const [individualStudentId, setIndividualStudentId] = useState(students[0]?.id ?? "");
 
   return (
-    <form action={formAction} encType="multipart/form-data" className="mx-auto max-w-2xl space-y-4">
+    <form action={formAction} className="mx-auto max-w-2xl space-y-4">
       <input type="hidden" name="targetType" value={targetType} />
       <input type="hidden" name="subjectId" value={subjectId} />
       {targetType === AssignmentTarget.INDIVIDUAL ? (

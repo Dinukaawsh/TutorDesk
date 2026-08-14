@@ -21,7 +21,6 @@ export function FeeProofUpload({ feeRecordId, disabled }: FeeProofUploadProps) {
   return (
     <form
       action={formAction}
-      encType="multipart/form-data"
       className="mt-3 space-y-3 rounded-lg border border-dashed border-border bg-white/60 p-3"
     >
       <input type="hidden" name="feeRecordId" value={feeRecordId} />

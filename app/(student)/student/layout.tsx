@@ -5,7 +5,6 @@ import { AppHeader } from "@/components/layout/app-header";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { StudentAlertBanner } from "@/components/notifications/student-alert-banner";
 import { studentNavItems } from "@/content/navigation";
-import { getUnreadNotificationCount } from "@/lib/notifications";
 
 export default async function StudentLayout({
   children,
@@ -17,15 +16,12 @@ export default async function StudentLayout({
     redirect("/login");
   }
 
-  const unreadCount = await getUnreadNotificationCount(session.user.id);
-
   return (
     <div className="flex h-screen flex-col overflow-hidden">
       <AppHeader
         title="Student"
         userName={session.user.name}
         userRole="student"
-        unreadCount={unreadCount}
       />
       <StudentAlertBanner />
       <div className="flex min-h-0 flex-1">
@@ -35,4 +31,3 @@ export default async function StudentLayout({
     </div>
   );
 }
-

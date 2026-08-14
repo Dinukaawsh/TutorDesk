@@ -4,7 +4,6 @@ import { auth } from "@/auth";
 import { AppHeader } from "@/components/layout/app-header";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { teacherNavItems } from "@/content/navigation";
-import { getUnreadNotificationCount } from "@/lib/notifications";
 
 export default async function TeacherLayout({
   children,
@@ -16,15 +15,12 @@ export default async function TeacherLayout({
     redirect("/login");
   }
 
-  const unreadCount = await getUnreadNotificationCount(session.user.id);
-
   return (
     <div className="flex h-screen flex-col overflow-hidden">
       <AppHeader
         title="Teacher"
         userName={session.user.name}
         userRole="teacher"
-        unreadCount={unreadCount}
       />
       <div className="flex min-h-0 flex-1">
         <AppSidebar items={teacherNavItems} />

@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
@@ -9,25 +9,25 @@ const SPLASH_MS = 1500;
 const FADE_MS = 400;
 
 function SplashOverlay() {
-  const [phase, setPhase] = useState<"visible" | "fading" | "off">(() => {
-    if (typeof window !== "undefined" && sessionStorage.getItem(SPLASH_KEY)) {
-      return "off";
+  const [phase, setPhase] = useState<"visible" | "fading" | "off">("visible");
+
+  useLayoutEffect(() => {
+    if (sessionStorage.getItem(SPLASH_KEY)) {
+      setPhase("off");
     }
-    return "visible";
-  });
+  }, []);
 
   useEffect(() => {
     if (sessionStorage.getItem(SPLASH_KEY)) {
       return;
     }
-    if (phase === "off") {
-      return;
-    }
+
     const fadeTimer = window.setTimeout(() => setPhase("fading"), SPLASH_MS);
     const doneTimer = window.setTimeout(() => {
       sessionStorage.setItem(SPLASH_KEY, "1");
       setPhase("off");
     }, SPLASH_MS + FADE_MS);
+
     return () => {
       window.clearTimeout(fadeTimer);
       window.clearTimeout(doneTimer);
@@ -45,6 +45,7 @@ function SplashOverlay() {
         phase === "fading" && "pointer-events-none opacity-0",
       )}
       aria-hidden={phase === "fading"}
+      suppressHydrationWarning
     >
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -left-24 top-10 h-64 w-64 rounded-full bg-white/70 blur-3xl" />
@@ -74,4 +75,3 @@ export function SplashProvider({ children }: { children: React.ReactNode }) {
     </>
   );
 }
-

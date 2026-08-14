@@ -52,7 +52,7 @@ export function LessonForm({
   );
 
   return (
-    <form action={formAction} encType="multipart/form-data" className="mx-auto max-w-2xl space-y-4">
+    <form action={formAction} className="mx-auto max-w-2xl space-y-4">
       {lessonId ? <input type="hidden" name="lessonId" value={lessonId} /> : null}
       <input type="hidden" name="type" value={type} />
       <input type="hidden" name="subjectId" value={subjectId} />
