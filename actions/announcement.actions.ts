@@ -12,7 +12,7 @@ import { createNotification } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { requireStudentSession } from "@/lib/server-auth";
 import { requireTeacherSession } from "@/lib/teacher-auth";
-import { createAnnouncementSchema } from "@/schemas/announcement.schema";
+import { createAnnouncementSchema, updateAnnouncementSchema } from "@/schemas/announcement.schema";
 
 function parseAnnouncementForm(formData: FormData) {
   return {
@@ -116,6 +116,49 @@ export async function createAnnouncementAction(
   revalidatePath("/teacher/announcements");
   revalidatePath("/student/announcements");
   return { success: true, message: "Announcement published." };
+}
+
+export async function updateAnnouncementAction(
+  _prev: ActionResult | undefined,
+  formData: FormData,
+): Promise<ActionResult> {
+  const session = await requireTeacherSession();
+  if (!session) {
+    return { success: false, message: "Unauthorized." };
+  }
+
+  const parsed = updateAnnouncementSchema.safeParse({
+    ...parseAnnouncementForm(formData),
+    id: formData.get("id"),
+  });
+  if (!parsed.success) {
+    return {
+      success: false,
+      fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
+    };
+  }
+
+  const { id, title, body, targetType, subjectId, grade } = parsed.data;
+
+  const existing = await prisma.announcement.findUnique({ where: { id } });
+  if (!existing) {
+    return { success: false, message: "Announcement not found." };
+  }
+
+  await prisma.announcement.update({
+    where: { id },
+    data: {
+      title,
+      body,
+      targetType,
+      subjectId: subjectId?.trim() || null,
+      grade: grade?.trim() || null,
+    },
+  });
+
+  revalidatePath("/teacher/announcements");
+  revalidatePath("/student/announcements");
+  return { success: true, message: "Announcement updated." };
 }
 
 export async function getTeacherAnnouncements() {

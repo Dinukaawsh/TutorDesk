@@ -20,7 +20,10 @@ export function TeacherAnnouncementsClient({
   subjects,
   grades,
 }: TeacherAnnouncementsClientProps) {
-  const [open, setOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<
+    Parameters<typeof AnnouncementList>[0]["announcements"][number] | null
+  >(null);
 
   return (
     <div className="space-y-4">
@@ -29,26 +32,47 @@ export function TeacherAnnouncementsClient({
           labelKey="action.add"
           icon={<FiPlus className="h-4 w-4" />}
           variant="default"
-          onClick={() => setOpen(true)}
+          onClick={() => setCreateOpen(true)}
         />
       </div>
-      <AnnouncementList announcements={announcements} />
+      <AnnouncementList announcements={announcements} onEdit={setEditTarget} />
       <FormModal
-        open={open}
-        onOpenChange={setOpen}
+        open={createOpen}
+        onOpenChange={setCreateOpen}
         title="New announcement"
         className="max-w-lg"
-        formId="announcement-form"
+        formId="announcement-create-form"
         saveLabel="Publish announcement"
-        onCancel={() => setOpen(false)}
+        onCancel={() => setCreateOpen(false)}
       >
         <AnnouncementForm
-          formId="announcement-form"
+          formId="announcement-create-form"
           hideActions
           subjects={subjects}
           grades={grades}
-          onSuccess={() => setOpen(false)}
+          onSuccess={() => setCreateOpen(false)}
         />
+      </FormModal>
+      <FormModal
+        open={Boolean(editTarget)}
+        onOpenChange={(open) => !open && setEditTarget(null)}
+        title="Edit announcement"
+        className="max-w-lg"
+        formId="announcement-edit-form"
+        saveLabel="Save changes"
+        onCancel={() => setEditTarget(null)}
+      >
+        {editTarget ? (
+          <AnnouncementForm
+            key={editTarget.id}
+            formId="announcement-edit-form"
+            hideActions
+            announcement={editTarget}
+            subjects={subjects}
+            grades={grades}
+            onSuccess={() => setEditTarget(null)}
+          />
+        ) : null}
       </FormModal>
     </div>
   );

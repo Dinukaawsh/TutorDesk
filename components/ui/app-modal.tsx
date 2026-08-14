@@ -10,6 +10,27 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
+function flattenFooterItems(node: React.ReactNode): React.ReactNode[] {
+  const items: React.ReactNode[] = [];
+
+  React.Children.forEach(node, (child) => {
+    if (child == null || child === false) {
+      return;
+    }
+
+    if (React.isValidElement(child) && child.type === React.Fragment) {
+      items.push(
+        ...flattenFooterItems((child.props as { children?: React.ReactNode }).children),
+      );
+      return;
+    }
+
+    items.push(child);
+  });
+
+  return items;
+}
+
 export type AppModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -27,7 +48,8 @@ export function AppModal({
   footer,
   size = "default",
 }: AppModalProps) {
-  const footerCount = footer ? React.Children.count(footer) : 0;
+  const footerItems = footer ? flattenFooterItems(footer) : [];
+  const twoColumnFooter = footerItems.length === 2;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -46,14 +68,24 @@ export function AppModal({
         <div className="min-h-0 flex-1 overflow-y-auto td-scrollbar px-4 py-4">
           {children}
         </div>
-        {footer ? (
+        {footerItems.length > 0 ? (
           <div
             className={cn(
-              "app-modal-footer shrink-0 border-t border-border px-4 py-3",
-              footerCount === 2 && "app-modal-footer-two",
+              "shrink-0 border-t border-border px-4 py-3",
+              twoColumnFooter ? "grid grid-cols-2 gap-2" : "flex flex-col gap-2",
             )}
           >
-            {footer}
+            {footerItems.map((item, index) =>
+              React.isValidElement(item)
+                ? React.cloneElement(item, {
+                    key: item.key ?? index,
+                    className: cn(
+                      twoColumnFooter && "w-full",
+                      (item.props as { className?: string }).className,
+                    ),
+                  })
+                : item,
+            )}
           </div>
         ) : null}
       </DialogContent>

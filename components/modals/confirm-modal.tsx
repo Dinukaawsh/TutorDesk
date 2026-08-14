@@ -120,16 +120,17 @@ export function ConfirmModal(props: ConfirmModalProps) {
 
   const footer = (
     <>
-      <Button type="button" variant="outline" disabled={pending} onClick={() => onOpenChange(false)}>
+      <Button type="button" variant="outline" className="w-full" disabled={pending} onClick={() => onOpenChange(false)}>
         {cancelLabel}
       </Button>
       {isFormProps(props) ? (
-        <Button type="submit" form={FORM_ID} variant={confirmVariant} disabled={pending}>
+        <Button type="submit" form={FORM_ID} className="w-full" variant={confirmVariant} disabled={pending}>
           {pending ? "Please wait..." : confirmLabel}
         </Button>
       ) : (
         <Button
           type="button"
+          className="w-full"
           variant={confirmVariant}
           disabled={pending || reasonInvalid}
           onClick={() => void handleCallbackConfirm()}

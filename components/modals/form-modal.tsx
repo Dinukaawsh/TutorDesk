@@ -92,12 +92,13 @@ export function FormModal({
       size={size}
       footer={
         <>
-          <Button type="button" variant="outline" disabled={loading} onClick={handleCancel}>
+          <Button type="button" variant="outline" className="w-full" disabled={loading} onClick={handleCancel}>
             {cancelLabel}
           </Button>
           <Button
             type={resolvedFormId ? "submit" : "button"}
             form={resolvedFormId}
+            className="w-full"
             disabled={loading || saveDisabled}
             onClick={resolvedFormId ? undefined : onSave}
           >
