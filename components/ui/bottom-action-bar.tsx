@@ -15,10 +15,10 @@ export function BottomActionBar({ open, children, className }: BottomActionBarPr
   }
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center p-4 pb-6">
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center p-3 pb-4 sm:p-4 sm:pb-6">
       <div
         className={cn(
-          "pointer-events-auto w-full max-w-lg animate-in slide-in-from-bottom-4 rounded-xl border border-border bg-white p-4 shadow-lg",
+          "pointer-events-auto w-full max-w-4xl animate-in slide-in-from-bottom-4 rounded-xl border border-border bg-white p-3 shadow-xl sm:p-4",
           className,
         )}
       >

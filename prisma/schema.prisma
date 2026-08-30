@@ -39,6 +39,7 @@ enum AnnouncementTarget {
   SUBJECT
   GRADE
   SUBJECT_GRADE
+  INSTITUTE
 }
 
 enum InquiryStatus {
@@ -81,9 +82,11 @@ model User {
   disableReason      String?
   disabledAt         DateTime?
   mustChangePassword Boolean   @default(false)
+  instituteId        String?
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 
+  institute             Institute? @relation(fields: [instituteId], references: [id], onDelete: SetNull)
   enrollments           Enrollment[]
   submissions           Submission[]
   feeRecords            FeeRecord[]
@@ -214,15 +217,31 @@ model Notification {
 }
 
 
+model Institute {
+  id        String   @id @default(cuid())
+  name      String
+  location  String
+  logoUrl   String?
+  address   String?
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  students      User[]
+  announcements Announcement[]
+}
+
 model Announcement {
-  id         String             @id @default(cuid())
-  title      String
-  body       String
-  targetType AnnouncementTarget
-  subjectId  String?
-  grade      String?
-  createdAt  DateTime           @default(now())
-  subject    Subject?           @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  id          String             @id @default(cuid())
+  title       String
+  body        String
+  targetType  AnnouncementTarget
+  subjectId   String?
+  grade       String?
+  instituteId String?
+  createdAt   DateTime           @default(now())
+  subject     Subject?           @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  institute   Institute?         @relation(fields: [instituteId], references: [id], onDelete: SetNull)
 }
 
 model Inquiry {

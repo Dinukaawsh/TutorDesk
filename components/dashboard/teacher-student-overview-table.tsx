@@ -14,7 +14,7 @@ import {
   StudentForm,
   type StudentFormData,
 } from "@/components/students/student-form";
-import type { SubjectOption, TagOption } from "@/components/students/student-filters";
+import type { InstituteOption, SubjectOption, TagOption } from "@/components/students/student-filters";
 import { Button } from "@/components/ui/button";
 import { AccountStatusBadge, StatusBadge } from "@/components/ui/status-badge";
 import { t, type LabelKey } from "@/content/navigation";
@@ -23,12 +23,14 @@ type TeacherStudentOverviewTableProps = {
   students: TeacherDashboardStudentRow[];
   subjects: SubjectOption[];
   tags: TagOption[];
+  institutes: InstituteOption[];
 };
 
 export function TeacherStudentOverviewTable({
   students,
   subjects,
   tags,
+  institutes,
 }: TeacherStudentOverviewTableProps) {
   const [viewStudent, setViewStudent] = useState<TeacherDashboardStudentRow | null>(
     null,
@@ -127,6 +129,7 @@ export function TeacherStudentOverviewTable({
             hideActions
             subjects={subjects}
             tags={tags}
+            institutes={institutes}
             student={editStudent}
             onSuccess={() => setEditStudent(null)}
           />

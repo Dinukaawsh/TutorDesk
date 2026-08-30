@@ -12,6 +12,7 @@ export const createStudentSchema = z.object({
   whatsapp: z.string().optional(),
   subjectIds: z.array(z.string().min(1)).default([]),
   tagIds: z.array(z.string().min(1)).default([]),
+  instituteId: z.string().optional(),
 });
 
 export type CreateStudentInput = z.infer<typeof createStudentSchema>;
@@ -28,6 +29,7 @@ export const updateStudentSchema = z.object({
   whatsapp: z.string().optional(),
   subjectIds: z.array(z.string().min(1)).default([]),
   tagIds: z.array(z.string().min(1)).default([]),
+  instituteId: z.string().optional(),
 });
 
 export type UpdateStudentInput = z.infer<typeof updateStudentSchema>;
@@ -64,6 +66,11 @@ export const bulkRemoveTagsSchema = z.object({
 export const bulkAddSubjectsSchema = z.object({
   ids: z.array(z.string().min(1)).min(1, "Select at least one student"),
   subjectIds: z.array(z.string().min(1)).min(1, "Select at least one subject"),
+});
+
+export const bulkUpdateInstituteSchema = z.object({
+  ids: z.array(z.string().min(1)).min(1, "Select at least one student"),
+  instituteId: z.string().min(1, "Select an institute"),
 });
 
 export const resetPasswordSchema = z.object({

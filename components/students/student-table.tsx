@@ -19,7 +19,7 @@ import {
   StudentForm,
   type StudentFormData,
 } from "@/components/students/student-form";
-import type { SubjectOption, TagOption } from "@/components/students/student-filters";
+import type { InstituteOption, SubjectOption, TagOption } from "@/components/students/student-filters";
 import { StudentTagBadge } from "@/components/students/student-tag-badge";
 import { ConfirmModal } from "@/components/modals/confirm-modal";
 import { FormPendingReporter } from "@/components/modals/form-pending-reporter";
@@ -44,6 +44,7 @@ export type StudentRow = {
   phone: string | null;
   whatsapp: string | null;
   grade: string | null;
+  institute: { id: string; name: string; location: string } | null;
   isDisabled: boolean;
   avatarUrl: string | null;
   subjects: { id: string; name: string }[];
@@ -57,6 +58,7 @@ type StudentTableProps = {
   students: StudentRow[];
   subjects: SubjectOption[];
   tags: TagOption[];
+  institutes: InstituteOption[];
   grades: string[];
 };
 
@@ -119,7 +121,7 @@ function ResetPasswordDialog({
   );
 }
 
-export function StudentTable({ students, subjects, tags, grades }: StudentTableProps) {
+export function StudentTable({ students, subjects, tags, institutes, grades }: StudentTableProps) {
   const [page, setPage] = useState(1);
 
   useEffect(() => {
@@ -173,6 +175,7 @@ export function StudentTable({ students, subjects, tags, grades }: StudentTableP
               </th>
               <th className="p-3 font-medium">Student</th>
               <th className="p-3 font-medium">Grade</th>
+              <th className="p-3 font-medium">Institute</th>
               <th className="p-3 font-medium">Subjects</th>
               <th className="p-3 font-medium">Tags</th>
               <th className="p-3 font-medium">Fees (month)</th>
@@ -199,6 +202,16 @@ export function StudentTable({ students, subjects, tags, grades }: StudentTableP
                   ) : null}
                 </td>
                 <td className="p-3 align-top">{student.grade ?? "-"}</td>
+                <td className="p-3 align-top">
+                  {student.institute ? (
+                    <div>
+                      <div className="font-medium">{student.institute.name}</div>
+                      <div className="text-muted-foreground">{student.institute.location}</div>
+                    </div>
+                  ) : (
+                    "-"
+                  )}
+                </td>
                 <td className="p-3 align-top">
                   <div className="flex flex-wrap gap-1">
                     {student.subjects.map((s) => (
@@ -259,7 +272,7 @@ export function StudentTable({ students, subjects, tags, grades }: StudentTableP
             ))}
             {students.length === 0 ? (
               <tr>
-                <td colSpan={8} className="p-6 text-center text-muted-foreground">
+                <td colSpan={10} className="p-6 text-center text-muted-foreground">
                   No students match your filters.
                 </td>
               </tr>
@@ -272,6 +285,7 @@ export function StudentTable({ students, subjects, tags, grades }: StudentTableP
         selectedIds={[...selected]}
         subjects={subjects}
         tags={tags}
+        institutes={institutes}
         grades={grades}
         onClear={() => setSelected(new Set())}
       />
@@ -291,6 +305,7 @@ export function StudentTable({ students, subjects, tags, grades }: StudentTableP
             hideActions
             subjects={subjects}
             tags={tags}
+            institutes={institutes}
             student={editStudent}
             onSuccess={() => setEditStudent(null)}
           />

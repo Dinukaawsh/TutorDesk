@@ -22,8 +22,22 @@ export type ActionResult = {
 export async function getTeacherContact() {
   return prisma.user.findFirst({
     where: { role: Role.TEACHER },
-    select: { name: true, whatsapp: true },
+    select: { name: true, whatsapp: true, avatarUrl: true },
   });
+}
+
+export async function getLoginBranding() {
+  const [teacher, institutes] = await Promise.all([
+    prisma.user.findFirst({
+      where: { role: Role.TEACHER },
+      select: { name: true, whatsapp: true, avatarUrl: true },
+    }),
+    prisma.institute.findMany({
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, location: true, logoUrl: true },
+    }),
+  ]);
+  return { teacher, institutes };
 }
 
 export async function hasTeacherAccount() {

@@ -12,7 +12,9 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { useActionToast } from "@/hooks/use-action-toast";
 import { useReportFormModalPending } from "@/components/modals/form-modal-context";
 import { FormPendingReporter } from "@/components/modals/form-pending-reporter";
-import type { SubjectOption, TagOption } from "@/components/students/student-filters";
+import type { InstituteOption, SubjectOption, TagOption } from "@/components/students/student-filters";
+import { FormSelect } from "@/components/ui/form-select";
+import { t } from "@/content/navigation";
 
 const initialState: ActionResult = { success: false };
 
@@ -29,11 +31,13 @@ export type StudentFormData = {
   avatarUrl: string | null;
   subjectIds: string[];
   tagIds: string[];
+  instituteId: string | null;
 };
 
 type StudentFormProps = {
   subjects: SubjectOption[];
   tags: TagOption[];
+  institutes: InstituteOption[];
   student?: StudentFormData | null;
   onSuccess?: () => void;
   onCancel?: () => void;
@@ -41,7 +45,7 @@ type StudentFormProps = {
   hideActions?: boolean;
 };
 
-export function StudentForm({ subjects, tags, student, onSuccess, onCancel, formId, hideActions }: StudentFormProps) {
+export function StudentForm({ subjects, tags, institutes, student, onSuccess, onCancel, formId, hideActions }: StudentFormProps) {
   const action = student ? updateStudentAction : createStudentAction;
   const [state, formAction, pending] = useActionState(action, initialState);
 
@@ -113,6 +117,21 @@ export function StudentForm({ subjects, tags, student, onSuccess, onCancel, form
         <div className="space-y-2">
           <Label htmlFor="student-stream">Stream</Label>
           <Input id="student-stream" name="stream" defaultValue={student?.stream ?? ""} />
+        </div>
+        <div className="space-y-2 sm:col-span-2">
+          <FormSelect
+            id="student-institute"
+            label={t("students.institute.assign")}
+            name="instituteId"
+            allowEmpty
+            emptyLabel="No institute"
+            placeholder="Select institute (optional)"
+            defaultValue={student?.instituteId ?? ""}
+            options={institutes.map((i) => ({
+              value: i.id,
+              label: `${i.name} — ${i.location}`,
+            }))}
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="student-whatsapp">WhatsApp</Label>

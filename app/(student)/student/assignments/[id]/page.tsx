@@ -1,12 +1,11 @@
 ﻿import { notFound, redirect } from "next/navigation";
-import Link from "next/link";
 import { AssignmentTarget, Role, SubmissionStatus } from "@prisma/client";
 import { auth } from "@/auth";
+import { BackLink } from "@/components/layout/back-link";
 import { PageHeader } from "@/components/layout/page-header";
 import { AssignmentAttachment } from "@/components/assignments/assignment-attachment";
 import { AssignmentStatusCard } from "@/components/assignments/assignment-status-card";
 import { SubmissionUpload } from "@/components/assignments/submission-upload";
-import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 
 type Props = { params: Promise<{ id: string }> };
@@ -87,14 +86,8 @@ export default async function StudentAssignmentDetailPage({ params }: Props) {
 
   return (
     <>
-      <PageHeader
-        title="Assignment"
-        actions={
-          <Button variant="outline" asChild>
-            <Link href="/student/assignments">Back</Link>
-          </Button>
-        }
-      />
+      <BackLink href="/student/assignments" label="Back to assignments" />
+      <PageHeader title="Assignment" />
       <div className="space-y-6">
         <AssignmentStatusCard
           assignment={{

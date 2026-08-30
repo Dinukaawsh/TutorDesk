@@ -61,6 +61,7 @@ export type TeacherDashboardStudentRow = {
     avatarUrl: string | null;
     subjectIds: string[];
     tagIds: string[];
+    instituteId: string | null;
   };
 };
 
@@ -252,6 +253,7 @@ export async function getTeacherDashboard(
       avatarUrl: s.avatarUrl,
       subjectIds: s.enrollments.map((e) => e.subjectId),
       tagIds: s.tagAssignments.map((row) => row.tagId),
+      instituteId: s.instituteId,
     },
   }));
 

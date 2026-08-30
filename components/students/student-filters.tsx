@@ -12,18 +12,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { t } from "@/content/navigation";
 
 export type SubjectOption = { id: string; name: string };
 
 export type TagOption = { id: string; name: string; color: string | null };
 
+export type InstituteOption = { id: string; name: string; location: string };
+
 type StudentFiltersProps = {
   subjects: SubjectOption[];
   grades: string[];
   tags: TagOption[];
+  institutes: InstituteOption[];
 };
 
-export function StudentFilters({ subjects, grades, tags }: StudentFiltersProps) {
+export function StudentFilters({ subjects, grades, tags, institutes }: StudentFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [pending, startTransition] = useTransition();
@@ -32,6 +36,7 @@ export function StudentFilters({ subjects, grades, tags }: StudentFiltersProps) 
   const grade = searchParams.get("grade") ?? "";
   const subjectId = searchParams.get("subjectId") ?? "";
   const tagId = searchParams.get("tagId") ?? "";
+  const instituteId = searchParams.get("instituteId") ?? "";
   const status = searchParams.get("status") ?? "";
   const feeStatus = searchParams.get("feeStatus") ?? "";
 
@@ -51,7 +56,7 @@ export function StudentFilters({ subjects, grades, tags }: StudentFiltersProps) 
 
   return (
     <form
-      className="grid gap-3 rounded-xl border border-border bg-white/80 p-4 backdrop-blur md:grid-cols-2 lg:grid-cols-7"
+      className="grid gap-3 rounded-xl border border-border bg-white/80 p-4 backdrop-blur md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8"
       onSubmit={(e) => {
         e.preventDefault();
         const fd = new FormData(e.currentTarget);
@@ -60,6 +65,7 @@ export function StudentFilters({ subjects, grades, tags }: StudentFiltersProps) 
           grade: String(fd.get("grade") ?? ""),
           subjectId: String(fd.get("subjectId") ?? ""),
           tagId: String(fd.get("tagId") ?? ""),
+          instituteId: String(fd.get("instituteId") ?? ""),
           status: String(fd.get("status") ?? ""),
           feeStatus: String(fd.get("feeStatus") ?? ""),
         });
@@ -132,6 +138,26 @@ export function StudentFilters({ subjects, grades, tags }: StudentFiltersProps) 
         <input type="hidden" name="tagId" value={tagId} />
       </div>
       <div className="space-y-1">
+        <Label>{t("students.institute.filter")}</Label>
+        <Select
+          value={instituteId || "all"}
+          onValueChange={(value) => apply({ instituteId: value === "all" ? "" : value })}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="All institutes" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All institutes</SelectItem>
+            {institutes.map((institute) => (
+              <SelectItem key={institute.id} value={institute.id}>
+                {institute.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <input type="hidden" name="instituteId" value={instituteId} />
+      </div>
+      <div className="space-y-1">
         <Label>Account</Label>
         <Select
           value={status || "all"}
@@ -168,7 +194,7 @@ export function StudentFilters({ subjects, grades, tags }: StudentFiltersProps) 
         </Select>
         <input type="hidden" name="feeStatus" value={feeStatus} />
       </div>
-      <div className="flex items-end gap-2 lg:col-span-7">
+      <div className="flex items-end gap-2 xl:col-span-8">
         <Button type="submit" disabled={pending}>
           {pending ? "Applying..." : "Apply filters"}
         </Button>

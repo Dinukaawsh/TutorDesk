@@ -21,6 +21,7 @@ function parseAnnouncementForm(formData: FormData) {
     targetType: formData.get("targetType"),
     subjectId: formData.get("subjectId") || undefined,
     grade: formData.get("grade") || undefined,
+    instituteId: formData.get("instituteId") || undefined,
   };
 }
 
@@ -28,6 +29,7 @@ async function findTargetedStudentIds(announcement: {
   targetType: AnnouncementTarget;
   subjectId: string | null;
   grade: string | null;
+  instituteId: string | null;
 }) {
   const base: Prisma.UserWhereInput = {
     role: Role.STUDENT,
@@ -49,6 +51,10 @@ async function findTargetedStudentIds(announcement: {
       if (!announcement.subjectId || !announcement.grade) return [];
       base.grade = announcement.grade;
       base.enrollments = { some: { subjectId: announcement.subjectId } };
+      break;
+    case AnnouncementTarget.INSTITUTE:
+      if (!announcement.instituteId) return [];
+      base.instituteId = announcement.instituteId;
       break;
     default:
       return [];
@@ -99,7 +105,7 @@ export async function createAnnouncementAction(
     };
   }
 
-  const { title, body, targetType, subjectId, grade } = parsed.data;
+  const { title, body, targetType, subjectId, grade, instituteId } = parsed.data;
 
   const announcement = await prisma.announcement.create({
     data: {
@@ -108,6 +114,7 @@ export async function createAnnouncementAction(
       targetType,
       subjectId: subjectId?.trim() || null,
       grade: grade?.trim() || null,
+      instituteId: instituteId?.trim() || null,
     },
   });
 
@@ -138,7 +145,7 @@ export async function updateAnnouncementAction(
     };
   }
 
-  const { id, title, body, targetType, subjectId, grade } = parsed.data;
+  const { id, title, body, targetType, subjectId, grade, instituteId } = parsed.data;
 
   const existing = await prisma.announcement.findUnique({ where: { id } });
   if (!existing) {
@@ -153,6 +160,7 @@ export async function updateAnnouncementAction(
       targetType,
       subjectId: subjectId?.trim() || null,
       grade: grade?.trim() || null,
+      instituteId: instituteId?.trim() || null,
     },
   });
 
@@ -205,7 +213,10 @@ export async function getTeacherAnnouncements() {
   }
 
   return prisma.announcement.findMany({
-    include: { subject: { select: { id: true, name: true, color: true } } },
+    include: {
+      subject: { select: { id: true, name: true, color: true } },
+      institute: { select: { id: true, name: true, location: true } },
+    },
     orderBy: { createdAt: "desc" },
   });
 }
@@ -215,8 +226,9 @@ function announcementMatchesStudent(
     targetType: AnnouncementTarget;
     subjectId: string | null;
     grade: string | null;
+    instituteId: string | null;
   },
-  student: { grade: string | null; subjectIds: string[] },
+  student: { grade: string | null; subjectIds: string[]; instituteId: string | null },
 ) {
   switch (announcement.targetType) {
     case AnnouncementTarget.EVERYONE:
@@ -237,6 +249,12 @@ function announcementMatchesStudent(
           student.grade &&
           announcement.grade === student.grade,
       );
+    case AnnouncementTarget.INSTITUTE:
+      return Boolean(
+        announcement.instituteId &&
+          student.instituteId &&
+          announcement.instituteId === student.instituteId,
+      );
     default:
       return false;
   }
@@ -252,7 +270,11 @@ export async function getStudentAnnouncements() {
 
   const student = await prisma.user.findUnique({
     where: { id: sessionUser.id },
-    include: { enrollments: { select: { subjectId: true } } },
+    select: {
+      grade: true,
+      instituteId: true,
+      enrollments: { select: { subjectId: true } },
+    },
   });
   if (!student) {
     return [];
@@ -260,11 +282,18 @@ export async function getStudentAnnouncements() {
 
   const subjectIds = student.enrollments.map((e) => e.subjectId);
   const announcements = await prisma.announcement.findMany({
-    include: { subject: { select: { id: true, name: true, color: true } } },
+    include: {
+      subject: { select: { id: true, name: true, color: true } },
+      institute: { select: { id: true, name: true, location: true } },
+    },
     orderBy: { createdAt: "desc" },
   });
 
   return announcements.filter((a) =>
-    announcementMatchesStudent(a, { grade: student.grade, subjectIds }),
+    announcementMatchesStudent(a, {
+      grade: student.grade,
+      subjectIds,
+      instituteId: student.instituteId,
+    }),
   );
 }

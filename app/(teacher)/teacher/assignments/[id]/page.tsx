@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AssignmentTarget } from "@prisma/client";
+import { BackLink } from "@/components/layout/back-link";
 import { PageHeader } from "@/components/layout/page-header";
 import { SubmissionList } from "@/components/assignments/submission-list";
-import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { prisma } from "@/lib/prisma";
 
@@ -32,14 +32,10 @@ export default async function TeacherAssignmentDetailPage({ params }: Props) {
 
   return (
     <>
+      <BackLink href="/teacher/assignments" label="Back to assignments" />
       <PageHeader
         title={assignment.title}
         description={`${assignment.subject.name} · ${targetLabel}`}
-        actions={
-          <Button variant="outline" asChild>
-            <Link href="/teacher/assignments">Back</Link>
-          </Button>
-        }
       />
       <div className="mb-6 space-y-2 rounded-lg border border-border bg-white/80 p-4 text-sm">
         <div className="flex flex-wrap gap-2">

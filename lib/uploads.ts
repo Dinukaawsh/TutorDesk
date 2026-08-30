@@ -103,3 +103,11 @@ export async function saveInquiryAttachments(files: File[]) {
   }
   return urls;
 }
+
+export async function saveInstituteLogo(file: File) {
+  return saveUploadedFile(file, {
+    subfolder: "institutes",
+    allowedMimeTypes: ["image/jpeg", "image/png", "image/webp", "image/gif"],
+    maxBytes: MAX_IMAGE_BYTES,
+  });
+}

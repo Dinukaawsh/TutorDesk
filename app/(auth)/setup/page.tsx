@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { BrandLogo } from "@/components/layout/brand-logo";
 import { hasTeacherAccount } from "@/actions/auth.actions";
 import { SetupForm } from "@/components/auth/setup-form";
 import {
@@ -16,7 +17,9 @@ export default async function SetupPage() {
   }
 
   return (
-    <Card>
+    <>
+      <BrandLogo className="mb-6" iconSize={40} />
+      <Card>
       <CardHeader>
         <CardTitle>Set up TutorDesk</CardTitle>
         <CardDescription>Create the first teacher account to get started</CardDescription>
@@ -25,5 +28,6 @@ export default async function SetupPage() {
         <SetupForm />
       </CardContent>
     </Card>
+    </>
   );
 }

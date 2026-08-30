@@ -1,6 +1,7 @@
 ﻿import { Suspense } from "react";
 import { FeeStatus } from "@prisma/client";
 import { listStudents } from "@/actions/student.actions";
+import { listInstitutes } from "@/actions/institute.actions";
 import { listSubjects } from "@/actions/subject.actions";
 import { listStudentTags } from "@/actions/tag.actions";
 import { PageHeader } from "@/components/layout/page-header";
@@ -24,6 +25,7 @@ export default async function TeacherStudentsPage({ searchParams }: PageProps) {
   const grade = param(params.grade);
   const subjectId = param(params.subjectId);
   const tagId = param(params.tagId);
+  const instituteId = param(params.instituteId);
   const status = param(params.status) as "enabled" | "disabled" | undefined;
   const feeStatusRaw = param(params.feeStatus);
   const feeStatus =
@@ -31,17 +33,19 @@ export default async function TeacherStudentsPage({ searchParams }: PageProps) {
       ? (feeStatusRaw as FeeStatus)
       : undefined;
 
-  const [subjectsRows, studentsRows, tagRows] = await Promise.all([
+  const [subjectsRows, studentsRows, tagRows, instituteRows] = await Promise.all([
     listSubjects(),
     listStudents({
       q,
       grade,
       subjectId,
       tagId,
+      instituteId,
       status: status === "enabled" || status === "disabled" ? status : undefined,
       feeStatus,
     }),
     listStudentTags(),
+    listInstitutes(),
   ]);
 
   const subjects = subjectsRows.map((s) => ({ id: s.id, name: s.name }));
@@ -51,6 +55,11 @@ export default async function TeacherStudentsPage({ searchParams }: PageProps) {
     name: tag.name,
     color: tag.color,
     count: tag._count.assignments,
+  }));
+  const institutes = instituteRows.map((i) => ({
+    id: i.id,
+    name: i.name,
+    location: i.location,
   }));
   const grades = [
     ...new Set(
@@ -67,6 +76,9 @@ export default async function TeacherStudentsPage({ searchParams }: PageProps) {
     phone: s.phone,
     whatsapp: s.whatsapp,
     grade: s.grade,
+    institute: s.institute
+      ? { id: s.institute.id, name: s.institute.name, location: s.institute.location }
+      : null,
     isDisabled: s.isDisabled,
     avatarUrl: s.avatarUrl,
     subjects: s.enrollments.map((e) => ({
@@ -93,6 +105,7 @@ export default async function TeacherStudentsPage({ searchParams }: PageProps) {
       avatarUrl: s.avatarUrl,
       subjectIds: s.enrollments.map((e) => e.subjectId),
       tagIds: s.tagAssignments.map((row) => row.tagId),
+      instituteId: s.instituteId,
     },
   }));
 
@@ -108,6 +121,7 @@ export default async function TeacherStudentsPage({ searchParams }: PageProps) {
           subjects={subjects}
           grades={grades}
           tags={tags}
+          institutes={institutes}
           tagStats={tagStats}
         />
       </Suspense>

@@ -15,7 +15,13 @@ import { useActionToast } from "@/hooks/use-action-toast";
 import { formatDateTime } from "@/lib/utils";
 
 type InquiryRow = Inquiry & {
-  student: { id: string; name: string; email: string; grade: string | null };
+  student: {
+    id: string;
+    name: string;
+    email: string;
+    grade: string | null;
+    institute: { id: string; name: string; location: string } | null;
+  };
   edits: InquiryEdit[];
 };
 
@@ -103,6 +109,7 @@ export function TeacherInquiryList({ inquiries }: TeacherInquiryListProps) {
           <thead className="border-b border-border bg-muted/50 text-left">
             <tr>
               <th className="p-3 font-medium">Student</th>
+              <th className="p-3 font-medium">Institute</th>
               <th className="p-3 font-medium">Title</th>
               <th className="p-3 font-medium">Status</th>
               <th className="p-3 font-medium">Submitted</th>
@@ -118,6 +125,16 @@ export function TeacherInquiryList({ inquiries }: TeacherInquiryListProps) {
                   {inquiry.student.grade ? (
                     <div className="text-muted-foreground">Grade {inquiry.student.grade}</div>
                   ) : null}
+                </td>
+                <td className="p-3 align-top">
+                  {inquiry.student.institute ? (
+                    <div>
+                      <div className="font-medium">{inquiry.student.institute.name}</div>
+                      <div className="text-muted-foreground">{inquiry.student.institute.location}</div>
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
                 </td>
                 <td className="p-3 align-top">{inquiry.title}</td>
                 <td className="p-3 align-top">

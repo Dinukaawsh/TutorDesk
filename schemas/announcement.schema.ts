@@ -8,6 +8,7 @@ export const createAnnouncementSchema = z
     targetType: z.nativeEnum(AnnouncementTarget),
     subjectId: z.string().optional(),
     grade: z.string().optional(),
+    instituteId: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (
@@ -31,6 +32,15 @@ export const createAnnouncementSchema = z
           code: "custom",
           path: ["grade"],
           message: "Grade is required for this audience",
+        });
+      }
+    }
+    if (data.targetType === AnnouncementTarget.INSTITUTE) {
+      if (!data.instituteId?.trim()) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["instituteId"],
+          message: "Institute is required for this audience",
         });
       }
     }

@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { useState } from "react";
-import { StudentFilters, type SubjectOption, type TagOption } from "@/components/students/student-filters";
+import { StudentFilters, type InstituteOption, type SubjectOption, type TagOption } from "@/components/students/student-filters";
 import { StudentForm } from "@/components/students/student-form";
 import { StudentTable, type StudentRow } from "@/components/students/student-table";
 import { StudentTagsManager, type StudentTagOption } from "@/components/students/student-tags-manager";
@@ -13,6 +13,7 @@ type StudentsPageClientProps = {
   subjects: SubjectOption[];
   grades: string[];
   tags: TagOption[];
+  institutes: InstituteOption[];
   tagStats: StudentTagOption[];
 };
 
@@ -21,6 +22,7 @@ export function StudentsPageClient({
   subjects,
   grades,
   tags,
+  institutes,
   tagStats,
 }: StudentsPageClientProps) {
   const [createOpen, setCreateOpen] = useState(false);
@@ -31,8 +33,8 @@ export function StudentsPageClient({
         <AddButton labelKey="action.addStudent" onClick={() => setCreateOpen(true)} />
       </div>
       <StudentTagsManager tags={tagStats} />
-      <StudentFilters subjects={subjects} grades={grades} tags={tags} />
-      <StudentTable students={students} subjects={subjects} tags={tags} grades={grades} />
+      <StudentFilters subjects={subjects} grades={grades} tags={tags} institutes={institutes} />
+      <StudentTable students={students} subjects={subjects} tags={tags} institutes={institutes} grades={grades} />
 
       <FormModal
         open={createOpen}
@@ -48,6 +50,7 @@ export function StudentsPageClient({
           hideActions
           subjects={subjects}
           tags={tags}
+          institutes={institutes}
           onSuccess={() => setCreateOpen(false)}
         />
       </FormModal>

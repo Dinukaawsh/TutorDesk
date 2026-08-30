@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useActionToast } from "@/hooks/use-action-toast";
 
 type SubjectOption = { id: string; name: string };
+type InstituteOption = { id: string; name: string; location: string };
 
 export type AnnouncementFormData = {
   id: string;
@@ -23,11 +24,13 @@ export type AnnouncementFormData = {
   targetType: AnnouncementTarget;
   subjectId: string | null;
   grade: string | null;
+  instituteId: string | null;
 };
 
 type AnnouncementFormProps = {
   announcement?: AnnouncementFormData | null;
   subjects: SubjectOption[];
+  institutes: InstituteOption[];
   grades: string[];
   onSuccess?: () => void;
   formId?: string;
@@ -41,11 +44,13 @@ const TARGET_OPTIONS = [
   { value: AnnouncementTarget.SUBJECT, label: "Subject" },
   { value: AnnouncementTarget.GRADE, label: "Grade" },
   { value: AnnouncementTarget.SUBJECT_GRADE, label: "Subject and grade" },
+  { value: AnnouncementTarget.INSTITUTE, label: "Institute" },
 ];
 
 export function AnnouncementForm({
   announcement,
   subjects,
+  institutes,
   grades,
   onSuccess,
   formId,
@@ -72,6 +77,7 @@ export function AnnouncementForm({
   const gradeRequired =
     targetType === AnnouncementTarget.GRADE ||
     targetType === AnnouncementTarget.SUBJECT_GRADE;
+  const instituteRequired = targetType === AnnouncementTarget.INSTITUTE;
 
   return (
     <form action={formAction} id={formId} noValidate className="space-y-4">
@@ -132,6 +138,21 @@ export function AnnouncementForm({
         options={grades.map((grade) => ({ value: grade, label: `Grade ${grade}` }))}
       />
       <FieldError message={state.fieldErrors?.grade?.[0]} />
+      <FormSelect
+        id="announcement-institute"
+        label="Institute (if applicable)"
+        name="instituteId"
+        required={instituteRequired}
+        allowEmpty
+        emptyLabel="Select institute"
+        placeholder="Select institute"
+        defaultValue={announcement?.instituteId ?? ""}
+        options={institutes.map((i) => ({
+          value: i.id,
+          label: `${i.name} (${i.location})`,
+        }))}
+      />
+      <FieldError message={state.fieldErrors?.instituteId?.[0]} />
       {state.message && !state.success ? <p className="text-sm">{state.message}</p> : null}
       {showActions ? (
         <Button type="submit" className="rounded-[4px]" disabled={pending}>

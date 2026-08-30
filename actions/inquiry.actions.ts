@@ -190,17 +190,29 @@ export async function getStudentInquiries() {
   });
 }
 
-export async function getTeacherInquiries() {
+export async function getTeacherInquiries(filters: { instituteId?: string } = {}) {
   const session = await requireTeacherSession();
   if (!session) {
     return [];
   }
 
+  const where =
+    filters.instituteId?.trim()
+      ? { student: { instituteId: filters.instituteId } }
+      : undefined;
+
   return prisma.inquiry.findMany({
+    where,
     orderBy: { createdAt: "desc" },
     include: {
       student: {
-        select: { id: true, name: true, email: true, grade: true },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          grade: true,
+          institute: { select: { id: true, name: true, location: true } },
+        },
       },
       edits: { orderBy: { editedAt: "asc" } },
     },

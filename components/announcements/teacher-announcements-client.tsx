@@ -10,16 +10,19 @@ import { AddButton } from "@/components/ui/add-button";
 import { t } from "@/content/navigation";
 
 type SubjectOption = { id: string; name: string };
+type InstituteOption = { id: string; name: string; location: string };
 
 type TeacherAnnouncementsClientProps = {
   announcements: Parameters<typeof AnnouncementList>[0]["announcements"];
   subjects: SubjectOption[];
+  institutes: InstituteOption[];
   grades: string[];
 };
 
 export function TeacherAnnouncementsClient({
   announcements,
   subjects,
+  institutes,
   grades,
 }: TeacherAnnouncementsClientProps) {
   const [createOpen, setCreateOpen] = useState(false);
@@ -53,6 +56,7 @@ export function TeacherAnnouncementsClient({
           formId="announcement-create-form"
           hideActions
           subjects={subjects}
+          institutes={institutes}
           grades={grades}
           onSuccess={() => setCreateOpen(false)}
         />
@@ -73,6 +77,7 @@ export function TeacherAnnouncementsClient({
             hideActions
             announcement={editTarget}
             subjects={subjects}
+            institutes={institutes}
             grades={grades}
             onSuccess={() => setEditTarget(null)}
           />

@@ -21,6 +21,7 @@ import {
   bulkEnableSchema,
   bulkRemoveTagsSchema,
   bulkUpdateGradeSchema,
+  bulkUpdateInstituteSchema,
   createStudentSchema,
   disableStudentSchema,
   resetPasswordSchema,
@@ -171,6 +172,7 @@ export async function createStudentAction(
     whatsapp: formData.get("whatsapp") || undefined,
     subjectIds: parseSubjectIds(formData),
     tagIds: parseTagIds(formData),
+    instituteId: formData.get("instituteId") || undefined,
   };
 
   const parsed = createStudentSchema.safeParse(raw);
@@ -195,7 +197,7 @@ export async function createStudentAction(
   }
 
   const passwordHash = await hashPassword(parsed.data.password);
-  const { password: _pw, subjectIds, tagIds, ...profile } = parsed.data;
+  const { password: _pw, subjectIds, tagIds, instituteId, ...profile } = parsed.data;
 
   const student = await prisma.user.create({
     data: {
@@ -211,6 +213,7 @@ export async function createStudentAction(
       stream: profile.stream || null,
       phone: profile.phone || null,
       whatsapp: profile.whatsapp || null,
+      instituteId: instituteId?.trim() || null,
     },
   });
 
@@ -244,6 +247,7 @@ export async function updateStudentAction(
     whatsapp: formData.get("whatsapp") || undefined,
     subjectIds: parseSubjectIds(formData),
     tagIds: parseTagIds(formData),
+    instituteId: formData.get("instituteId") || undefined,
   };
 
   const parsed = updateStudentSchema.safeParse(raw);
@@ -276,7 +280,7 @@ export async function updateStudentAction(
     avatarUrl = (await saveAvatarFile(avatar)) ?? student.avatarUrl;
   }
 
-  const { id, subjectIds, tagIds, ...profile } = parsed.data;
+  const { id, subjectIds, tagIds, instituteId, ...profile } = parsed.data;
 
   await prisma.user.update({
     where: { id },
@@ -290,6 +294,7 @@ export async function updateStudentAction(
       phone: profile.phone || null,
       whatsapp: profile.whatsapp || null,
       avatarUrl,
+      instituteId: instituteId?.trim() || null,
     },
   });
 
@@ -466,6 +471,43 @@ export async function bulkUpdateGradeAction(
   return { success: true, message: "Grade updated for selected students." };
 }
 
+export async function bulkUpdateInstituteAction(
+  _prev: ActionResult | undefined,
+  formData: FormData,
+): Promise<ActionResult> {
+  const session = await requireTeacherSession();
+  if (!session) {
+    return { success: false, message: "Unauthorized." };
+  }
+
+  const parsed = bulkUpdateInstituteSchema.safeParse({
+    ids: formData.getAll("ids").map(String),
+    instituteId: formData.get("instituteId"),
+  });
+  if (!parsed.success) {
+    return {
+      success: false,
+      fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
+      message: parsed.error.flatten().formErrors[0],
+    };
+  }
+
+  const institute = await prisma.institute.findUnique({
+    where: { id: parsed.data.instituteId },
+  });
+  if (!institute) {
+    return { success: false, message: "Institute not found." };
+  }
+
+  await prisma.user.updateMany({
+    where: { id: { in: parsed.data.ids }, role: Role.STUDENT },
+    data: { instituteId: parsed.data.instituteId },
+  });
+
+  revalidateStudents();
+  return { success: true, message: "Institute updated for selected students." };
+}
+
 export async function bulkAddTagsAction(
   _prev: ActionResult | undefined,
   formData: FormData,
@@ -605,6 +647,7 @@ export type StudentListFilters = {
   grade?: string;
   subjectId?: string;
   tagId?: string;
+  instituteId?: string;
   status?: "enabled" | "disabled";
   feeStatus?: FeeStatus;
 };
@@ -645,6 +688,10 @@ export async function listStudents(filters: StudentListFilters = {}) {
     where.tagAssignments = { some: { tagId: filters.tagId } };
   }
 
+  if (filters.instituteId) {
+    where.instituteId = filters.instituteId;
+  }
+
   if (filters.feeStatus) {
     where.feeRecords = {
       some: {
@@ -660,6 +707,7 @@ export async function listStudents(filters: StudentListFilters = {}) {
     where,
     orderBy: { name: "asc" },
     include: {
+      institute: { select: { id: true, name: true, location: true } },
       enrollments: {
         include: { subject: { select: { id: true, name: true, color: true } } },
       },

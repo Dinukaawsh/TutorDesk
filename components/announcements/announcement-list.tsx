@@ -6,6 +6,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 
 type AnnouncementWithSubject = Announcement & {
   subject: { id: string; name: string; color: string | null } | null;
+  institute: { id: string; name: string; location: string } | null;
 };
 
 function audienceLabel(row: AnnouncementWithSubject) {
@@ -18,6 +19,8 @@ function audienceLabel(row: AnnouncementWithSubject) {
       return row.subject && row.grade
         ? `${row.subject.name} · Grade ${row.grade}`
         : "Subject & grade";
+    case "INSTITUTE":
+      return row.institute ? `Institute: ${row.institute.name}` : "Institute";
     default:
       return "All students";
   }
