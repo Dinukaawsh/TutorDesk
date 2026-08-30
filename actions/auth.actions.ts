@@ -27,7 +27,7 @@ export async function getTeacherContact() {
 }
 
 export async function getLoginBranding() {
-  const [teacher, institutes] = await Promise.all([
+  const [teacher, institutes, subjects] = await Promise.all([
     prisma.user.findFirst({
       where: { role: Role.TEACHER },
       select: { name: true, whatsapp: true, avatarUrl: true },
@@ -36,8 +36,12 @@ export async function getLoginBranding() {
       orderBy: { name: "asc" },
       select: { id: true, name: true, location: true, logoUrl: true },
     }),
+    prisma.subject.findMany({
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, color: true },
+    }),
   ]);
-  return { teacher, institutes };
+  return { teacher, institutes, subjects };
 }
 
 export async function hasTeacherAccount() {

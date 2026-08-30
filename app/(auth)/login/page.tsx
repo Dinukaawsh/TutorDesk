@@ -22,7 +22,7 @@ export default async function LoginPage() {
     );
   }
 
-  const { teacher, institutes } = await getLoginBranding();
+  const { teacher, institutes, subjects } = await getLoginBranding();
 
   return (
     <div className="overflow-hidden rounded-[var(--radius-md)] border border-border bg-white shadow-lg">
@@ -77,6 +77,34 @@ export default async function LoginPage() {
                   <p className="text-[10px] text-muted-foreground">{institute.location}</p>
                 </div>
               </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {/* Subjects offered */}
+      {subjects.length > 0 ? (
+        <div className="border-b border-border px-6 py-5">
+          <p className="mb-3 text-center text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Classes offered
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            {subjects.map((subject) => (
+              <span
+                key={subject.id}
+                className="inline-flex items-center rounded-full border border-border bg-white px-3 py-1 text-xs font-medium shadow-sm"
+                style={
+                  subject.color
+                    ? {
+                        borderColor: `${subject.color}40`,
+                        backgroundColor: `${subject.color}12`,
+                        color: subject.color,
+                      }
+                    : undefined
+                }
+              >
+                {subject.name}
+              </span>
             ))}
           </div>
         </div>
